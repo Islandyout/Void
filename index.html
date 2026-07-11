@@ -37,35 +37,36 @@ button{font-family:inherit;}
 #menuScreen.active{display:block;}
 #topNav{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;gap:8px;align-items:center;}
 .navLogo{font-weight:700;font-size:16px;letter-spacing:3px;margin-right:6px;}
-.navTab{background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:8px 18px;font-weight:700;
-  font-size:13px;letter-spacing:2px;cursor:pointer;backdrop-filter:blur(6px);}
-.navTab.sel{background:#eaf0ff;color:#101826;border-color:#eaf0ff;}
-#lobbyLeft{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));top:calc(60px + env(safe-area-inset-top,0px));bottom:12px;
-  width:min(280px,31vw);display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-right:4px;}
-.seasonCard{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:8px 14px;text-align:center;backdrop-filter:blur(6px);}
+.navTab{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;padding:8px 10px;font-weight:700;
+  font-size:12px;letter-spacing:2px;cursor:pointer;color:var(--muted);transition:color .15s;}
+.navTab:active{color:var(--text);}
+.navTab.sel{color:var(--text);border-bottom-color:var(--accent);}
+#lobbyLeft{position:absolute;left:calc(16px + env(safe-area-inset-left,0px));top:calc(58px + env(safe-area-inset-top,0px));bottom:12px;
+  width:min(250px,28vw);display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:4px;
+  text-shadow:0 1px 4px rgba(0,0,0,.7);}
+.seasonCard{background:none;border:none;padding:0;text-align:left;}
 .seasonSub{font-size:10px;letter-spacing:3px;color:#6fc3ff;font-weight:700;}
-.seasonTitle{font-size:19px;letter-spacing:3px;font-weight:700;}
-.lvlCard{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:center;backdrop-filter:blur(6px);}
-#lvlBadge{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:1px;background:rgba(255,176,32,.12);
-  border:2px solid var(--accent);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center;line-height:1.1;}
+.seasonTitle{font-size:22px;letter-spacing:3px;font-weight:700;line-height:1.1;}
+.lvlCard{background:none;border:none;padding:0;display:flex;gap:10px;align-items:center;}
+#lvlBadge{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:1px;background:rgba(255,176,32,.1);
+  border:1.5px solid var(--accent);border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center;line-height:1.1;}
 #xpToGo{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:5px;font-weight:700;}
-.panelHead{font-size:14px;letter-spacing:3px;font-weight:700;background:var(--panel);border:1px solid var(--edge);
-  border-radius:8px;padding:8px;text-align:center;backdrop-filter:blur(6px);}
+.panelHead{font-size:10px;letter-spacing:4px;font-weight:700;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.14);
+  border-radius:0;padding:0 0 5px;text-align:left;color:var(--muted);}
 #lobbyRight{position:absolute;right:calc(12px + env(safe-area-inset-right,0px));bottom:12px;width:min(270px,31vw);
   display:flex;flex-direction:column;gap:8px;}
-#modeCard{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:10px;backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;gap:6px;}
+#modeCard{background:rgba(10,16,28,.42);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px;backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;gap:5px;}
 #modeTitle{font-size:19px;font-weight:700;letter-spacing:3px;text-align:center;}
 #mapTitle{font-size:10px;letter-spacing:2px;color:var(--muted);text-align:center;margin-top:-6px;font-weight:700;}
-.readyBtn{background:linear-gradient(135deg,var(--accent),#e08a10);color:#1a1206;border:none;border-radius:8px;
-  padding:13px;font-family:inherit;font-weight:700;font-size:19px;letter-spacing:4px;cursor:pointer;
-  box-shadow:0 4px 24px rgba(255,176,32,.4);}
+.readyBtn{background:linear-gradient(135deg,var(--accent),#e08a10);color:#1a1206;border:none;border-radius:10px;
+  padding:12px;font-family:inherit;font-weight:700;font-size:18px;letter-spacing:4px;cursor:pointer;
+  box-shadow:0 6px 26px rgba(255,176,32,.45);margin-top:3px;}
 .readyBtn:active{transform:scale(.97);}
 .logo{font-weight:700;font-size:clamp(40px,10vw,68px);letter-spacing:8px;text-align:center;text-shadow:0 0 30px rgba(255,176,32,.4);}
 .tagline{color:var(--muted);letter-spacing:3px;font-size:12px;text-transform:uppercase;margin-top:-14px;}
-#tokenChip{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));
-  background:var(--panel);border:1px solid var(--edge);border-radius:20px;padding:8px 18px;font-size:16px;font-weight:700;color:var(--accent);
-  display:flex;gap:8px;align-items:center;backdrop-filter:blur(6px);}
+#tokenChip{background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.35);border-radius:999px;padding:5px 14px;
+  font-size:14px;font-weight:700;color:var(--accent);display:flex;gap:6px;align-items:center;}
 #tokenChip::before{content:'◈';font-size:14px;}
 .menuBtn{font-weight:600;font-size:19px;letter-spacing:3px;text-transform:uppercase;
   padding:15px 44px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;color:var(--text);cursor:pointer;
@@ -73,8 +74,9 @@ button{font-family:inherit;}
 .menuBtn:active{transform:scale(.97);}
 .menuBtn.primary{background:linear-gradient(135deg,var(--accent),#e08a10);color:#1a1206;border-color:var(--accent);box-shadow:0 4px 20px rgba(255,176,32,.3);}
 #modeRow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
-.modeChip{background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:5px 4px;cursor:pointer;
-  text-align:center;font-weight:700;font-size:9px;letter-spacing:.5px;flex:1;backdrop-filter:blur(6px);}
+.modeChip{background:none;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 2px;cursor:pointer;
+  text-align:center;font-weight:700;font-size:8.5px;letter-spacing:.4px;flex:1;color:var(--muted);}
+.modeChip.sel{color:var(--accent);}
 #modeRow,#mapRow,#diffRow{display:flex;gap:4px;}
 .modeChip span{display:block;font-size:9px;color:var(--muted);letter-spacing:1px;font-weight:600;margin-top:2px;}
 .modeChip.sel{border-color:var(--accent);color:var(--accent);background:rgba(255,176,32,.1);}
@@ -123,12 +125,12 @@ button{font-family:inherit;}
 #levelRow{display:flex;align-items:center;gap:10px;margin-top:-6px;}
 #lvlBadge{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:1px;background:var(--panel);
   border:1px solid var(--edge);border-radius:14px;padding:4px 12px;}
-.xpTrack{width:180px;height:8px;background:#182238;border:1px solid var(--edge);border-radius:4px;overflow:hidden;}
+.xpTrack{width:180px;height:5px;background:rgba(255,255,255,.12);border:none;border-radius:3px;overflow:hidden;}
 .xpTrack .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width 1.1s ease-out;}
 #dailyBar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:92vw;}
-.chal{background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:8px 12px;width:100%;backdrop-filter:blur(6px);}
-#dailyBar{flex-direction:column;gap:8px;max-width:none;}
-.chal.done{border-color:rgba(61,220,151,.5);}
+.chal{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:6px 2px 9px;width:100%;}
+#dailyBar{flex-direction:column;gap:2px;max-width:none;margin-top:-8px;}
+.chal.done{border-bottom-color:rgba(61,220,151,.3);}
 .chal .ctxt{font-size:11px;letter-spacing:.5px;color:var(--text);}
 .chal .crw{font-size:10px;color:var(--accent);font-weight:700;float:right;}
 .chal .cbar{height:4px;background:#182238;border-radius:2px;margin-top:5px;overflow:hidden;}
@@ -2682,7 +2684,9 @@ function mpEnsure(p){
 function mpState(p){
   if(!game.running)return;
   const r=mpEnsure(p);
-  r.target.set(p.x,p.y,p.z);r.tYaw=p.ya;r.name=p.n||r.name;r.walk=p.mv;
+  r.target.set(p.x,p.y,p.z);
+  r.tYaw=p.ya+Math.PI; // camera yaw convention (0 = -Z) vs avatar model front (+Z): flip 180°
+  r.name=p.n||r.name;r.walk=p.mv;
   if(p.hp!==undefined&&p.hp!==r.hp){r.hp=p.hp;drawBotLabel(r);}
   if(p.w&&p.w!==r.wkey){
     r.wkey=p.w;
