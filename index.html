@@ -262,6 +262,16 @@ button{font-family:inherit;}
 #btnShootL{left:calc(3vw + env(safe-area-inset-left,0px));bottom:44vh;width:14vmin;height:14vmin;background:rgba(255,59,92,.2);border-color:rgba(255,59,92,.45);}
 #btnADSL{left:calc(5vw + 14vmin + env(safe-area-inset-left,0px));bottom:46vh;width:11vmin;height:11vmin;border-color:rgba(61,220,151,.6);}
 #btnGyro{left:calc(5vw + 14vmin + env(safe-area-inset-left,0px));bottom:calc(46vh + 13vmin);width:9vmin;height:9vmin;font-size:9px;border-color:rgba(125,140,173,.6);}
+#btnEmote{left:calc(6vw + 14vmin + 10vmin + env(safe-area-inset-left,0px));bottom:calc(46vh + 13vmin);width:9vmin;height:9vmin;font-size:15px;border-color:rgba(138,92,201,.6);}
+.lockRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
+.lockCard{background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:8px;display:flex;flex-direction:column;
+  align-items:center;gap:6px;cursor:pointer;backdrop-filter:blur(6px);}
+.lockCard.eq{border-color:var(--accent2);}
+.lockCard.lk{opacity:.75;}
+.swatch{width:34px;height:34px;border-radius:6px;border:2px solid rgba(255,255,255,.25);}
+.lockName{font-size:10px;letter-spacing:1px;font-weight:700;text-align:center;}
+.lockPrice{font-size:10px;color:var(--accent);font-weight:700;}
+.lockCard.eq .lockPrice{color:var(--accent2);}
 /* lean pair tucked directly below the minimap */
 #btnLeanL{left:calc(14px + env(safe-area-inset-left,0px));top:calc(132px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:14px;}
 #btnLeanR{left:calc(22px + 9vmin + env(safe-area-inset-left,0px));top:calc(132px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:14px;}
@@ -304,6 +314,7 @@ button{font-family:inherit;}
   <div id="topNav">
     <div class="navLogo">VOX<span style="color:var(--accent)">STRIKE</span></div>
     <div class="navTab sel">PLAY</div>
+    <div class="navTab" id="btnLocker">LOCKER</div>
     <div class="navTab" id="btnShop">ARMORY</div>
     <div class="navTab" id="btnPass">PASS</div>
     <div class="navTab" id="btnSettings">SETTINGS</div>
@@ -339,6 +350,15 @@ button{font-family:inherit;}
       <button id="btnPlay" class="readyBtn">READY UP</button>
     </div>
   </div>
+</div>
+
+<div id="lockerScreen" class="overlay" style="z-index:95;justify-content:flex-start;padding-top:calc(20px + env(safe-area-inset-top,0px));overflow-y:auto;">
+  <div style="display:flex;align-items:center;gap:16px;width:100%;max-width:900px;">
+    <h2 style="font-size:24px;">LOCKER</h2>
+    <div style="flex:1"></div><div id="lockerTokens" style="color:var(--accent);font-weight:700;">◈ 0</div>
+  </div>
+  <div id="lockerGrid" style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:10px;"></div>
+  <button class="menuBtn" id="lockerBack">Back</button>
 </div>
 
 <div id="passScreen" class="overlay" style="z-index:95;justify-content:flex-start;padding-top:calc(20px + env(safe-area-inset-top,0px));">
@@ -416,6 +436,7 @@ button{font-family:inherit;}
   <div class="touchBtn" id="btnWpn">WPN</div>
   <div class="touchBtn" id="btnNade">◉</div>
   <div class="touchBtn" id="btnGyro">GYRO</div>
+  <div class="touchBtn" id="btnEmote">♪</div>
   <div class="touchBtn" id="btnLeanL">⟨</div>
   <div class="touchBtn" id="btnLeanR">⟩</div>
 </div>
@@ -1072,6 +1093,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyR')tryReload();
   if(e.code==='KeyC')crouchPressed();
   if(e.code==='KeyG'&&game.nades>0&&!player.dead){cancelReload();game.nadeAim=true;sfx.pin();}
+  if(e.code==='KeyB')doEmote();
   if(e.code==='Escape'&&!player.dead)pauseGame();
   const di=['Digit1','Digit2','Digit3','Digit4','Digit5'].indexOf(e.code);
   if(di>=0)switchTo(di);
@@ -1177,6 +1199,7 @@ if(IS_TOUCH){
     player.pitch=Math.max(-1.45,Math.min(1.45,player.pitch+pr*sens));
   });
   gyroBtn.addEventListener('touchstart',e=>{gyroOn=!gyroOn;gyroBtn.classList.toggle('on',gyroOn);buzz(12);e.preventDefault();},{passive:false});
+  bindBtn($('btnEmote'),()=>doEmote());
 }
 
 /* ================= movement ================= */
@@ -2083,6 +2106,74 @@ function renderShop(){
 $('btnShop').addEventListener('click',()=>{initAudio();menuScreen.classList.remove('active');shopScreen.classList.add('active');renderShop();});
 $('shopBack').addEventListener('click',()=>{shopScreen.classList.remove('active');menuScreen.classList.add('active');$('tokenBal').textContent=tokens;});
 
+/* ================= locker: skins, hats, emotes ================= */
+const BODIES={green:{c:0x3fae7a,p:0},crimson:{c:0xc93b4e,p:250},royal:{c:0x2f5fd8,p:250},violet:{c:0x8a5cc9,p:250},
+  cyan:{c:0x27b6c9,p:250},white:{c:0xe8ecf4,p:300},gold:{c:0xffb020,p:400},obsidian:{c:0x23262e,p:400}};
+const HATS={none:{p:0},visor:{p:300},cap:{p:300},tophat:{p:500},horns:{p:600},crown:{p:800}};
+const EMOTES={wave:{p:0,name:'WAVE'},spin:{p:400,name:'SPIN'}};
+profile.locker=profile.locker||{body:'green',hat:'none',emote:'wave',owned:['green','none','wave']};
+function lockerOwns(id){return profile.locker.owned.includes(id);}
+function buildHat(key){
+  const g=new THREE.Group();
+  const hp=(w,hh,d,x,y,z,c)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),mat(c,0.6));m.position.set(x,y,z);g.add(m);return m;};
+  if(key==='visor'){const v=hp(0.54,0.13,0.1,0,1.92,0.27,0x11141a);
+    const glow=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,0.02),new THREE.MeshBasicMaterial({color:0x3ddc97}));
+    glow.position.set(0,1.92,0.325);g.add(glow);}
+  else if(key==='cap'){hp(0.54,0.12,0.54,0,2.16,0,0xc93b4e);hp(0.5,0.05,0.3,0,2.12,0.4,0xc93b4e);}
+  else if(key==='tophat'){hp(0.62,0.06,0.62,0,2.16,0,0x1a1d24);hp(0.38,0.42,0.38,0,2.38,0,0x1a1d24);hp(0.4,0.07,0.4,0,2.22,0,0xc9a03b);}
+  else if(key==='horns'){const l=hp(0.09,0.26,0.09,-0.22,2.24,0,0xc93b4e);l.rotation.z=0.4;
+    const r=hp(0.09,0.26,0.09,0.22,2.24,0,0xc93b4e);r.rotation.z=-0.4;}
+  else if(key==='crown'){hp(0.54,0.13,0.54,0,2.18,0,0xffb020);
+    for(let i=0;i<4;i++)hp(0.08,0.14,0.08,(i-1.5)*0.15,2.3,0.24,0xffb020);}
+  return g;
+}
+function applySkinTo(av,body,hat){
+  av.torso.material.color.setHex(BODIES[body]?BODIES[body].c:BODIES.green.c);
+  if(av.hatMesh){av.hatMesh.parent&&av.hatMesh.parent.remove(av.hatMesh);av.hatMesh=null;}
+  if(hat&&hat!=='none'){av.hatMesh=buildHat(hat);av.g.add(av.hatMesh);}
+}
+function renderLocker(){
+  $('lockerTokens').textContent='◈ '+tokens;
+  const grid=$('lockerGrid');grid.innerHTML='';
+  const section=(title,items,kind)=>{
+    const head=document.createElement('div');head.className='panelHead';head.textContent=title;grid.appendChild(head);
+    const row=document.createElement('div');row.className='lockRow';
+    for(const id in items){
+      const it=items[id],ownedIt=lockerOwns(id),eq=profile.locker[kind]===id;
+      const card=document.createElement('div');card.className='lockCard'+(eq?' eq':ownedIt?'':' lk');
+      const sw=kind==='body'?`<div class="swatch" style="background:#${it.c.toString(16).padStart(6,'0')}"></div>`
+        :`<div class="swatch" style="display:flex;align-items:center;justify-content:center;font-size:16px;background:#182238;">${kind==='hat'?'👒':'♪'}</div>`;
+      card.innerHTML=sw+`<div class="lockName">${(it.name||id).toUpperCase()}</div>
+        <div class="lockPrice">${eq?'EQUIPPED':ownedIt?'EQUIP':'◈ '+it.p}</div>`;
+      card.addEventListener('click',()=>{
+        if(!ownedIt){
+          if(tokens<it.p)return;
+          tokens-=it.p;profile.locker.owned.push(id);sfx.buy();
+        }
+        profile.locker[kind]=id;saveProfile();
+        if(lobbyAv)applySkinTo(lobbyAv,profile.locker.body,profile.locker.hat);
+        renderLocker();
+      });
+      row.appendChild(card);
+    }
+    grid.appendChild(row);
+  };
+  section('BODY COLOR',BODIES,'body');
+  section('HEADGEAR',HATS,'hat');
+  section('EMOTES',EMOTES,'emote');
+}
+$('btnLocker').addEventListener('click',()=>{initAudio();menuScreen.classList.remove('active');$('lockerScreen').classList.add('active');renderLocker();});
+$('lockerBack').addEventListener('click',()=>{$('lockerScreen').classList.remove('active');menuScreen.classList.add('active');renderLobby();});
+let emoteCd=0;
+function doEmote(){
+  if(emoteCd>0||!game.running||player.dead)return;
+  emoteCd=3;
+  const k=profile.locker.emote||'wave';
+  showCenterMsg(EMOTES[k].name+' ♪');
+  tone(0.25,0.12,523,659,'square');tone(0.25,0.12,659,784,'square',0.12);tone(0.25,0.16,784,1046,'square',0.24);
+  if(mp.on&&mp.ch)mp.ch.send({type:'broadcast',event:'emote',payload:{id:mp.id,k}});
+}
+
 /* ================= battle royale ================= */
 const RARITIES=[
   {k:'COMMON',m:1.0,c:0x9aa3b2},{k:'RARE',m:1.15,c:0x2f8dff},
@@ -2251,6 +2342,10 @@ function mpConnect(room,name,cb){
   mp.ch.on('broadcast',{event:'hit'},({payload:p})=>mpHit(p));
   mp.ch.on('broadcast',{event:'kill'},({payload:p})=>mpKill(p));
   mp.ch.on('broadcast',{event:'nade'},({payload:p})=>mpNadeIn(p));
+  mp.ch.on('broadcast',{event:'emote'},({payload:p})=>{
+    const r=mp.remotes[p.id];
+    if(r){r.emoteT=2.6;r.emoteKind=p.k;addKillEntry(r.name+' emoted: '+((EMOTES[p.k]&&EMOTES[p.k].name)||'WAVE'));}
+  });
   mp.ch.on('presence',{event:'sync'},()=>{
     mp.roster=mp.ch.presenceState();
     for(const id in mp.remotes)if(!mp.roster[id])mpRemove(id);
@@ -2302,6 +2397,10 @@ function mpState(p){
     const ng=buildBotGunMesh(p.w);ng.position.set(0.42,1.30,-0.45);ng.rotation.x=-0.06;
     ng.traverse(o=>{if(o.isMesh){o.userData.remote=r;o.userData.part='body';mpHittables.push(o);}});
     r.parts.g.add(ng);r.parts.gun=ng;
+  }
+  if((p.sk&&p.sk!==r.skin)||(p.ht&&p.ht!==r.hat)){
+    r.skin=p.sk;r.hat=p.ht;
+    applySkinTo(r.parts,p.sk,p.ht);
   }
   const wasDead=r.dead;r.dead=!!p.d;
   r.parts.g.visible=!r.dead;
@@ -2361,7 +2460,13 @@ function mpTick(dt){
     let dy=r.tYaw-r.parts.g.rotation.y;
     dy=((dy+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;
     r.parts.g.rotation.y+=dy*Math.min(1,dt*10);
-    if(r.walk&&!r.dead){
+    if(r.emoteT>0&&!r.dead){
+      r.emoteT-=dt;
+      if(r.emoteKind==='spin')r.parts.g.rotation.y+=dt*8;
+      r.parts.armL.rotation.z=1.3+Math.sin(perfT*9)*0.5;
+      r.parts.armR.rotation.z=-1.3-Math.sin(perfT*9+1)*0.5;
+      if(r.emoteT<=0){r.parts.armL.rotation.z=0;r.parts.armR.rotation.z=0;}
+    }else if(r.walk&&!r.dead){
       r.walkT+=dt*6;const s=Math.sin(r.walkT)*0.6;
       r.parts.legL.rotation.x=s;r.parts.legR.rotation.x=-s;
       r.parts.armL.rotation.x=-s*0.8;r.parts.armR.rotation.x=s*0.5;
@@ -2373,7 +2478,8 @@ function mpTick(dt){
     mp.ch.send({type:'broadcast',event:'st',payload:{
       id:mp.id,n:mp.name,
       x:+player.pos.x.toFixed(2),y:+player.pos.y.toFixed(2),z:+player.pos.z.toFixed(2),
-      ya:+player.yaw.toFixed(2),hp:Math.round(player.hp),w:cur,d:player.dead?1:0,mv:player.moving?1:0}});
+      ya:+player.yaw.toFixed(2),hp:Math.round(player.hp),w:cur,d:player.dead?1:0,mv:player.moving?1:0,
+      sk:profile.locker.body,ht:profile.locker.hat}});
   }
 }
 
@@ -2480,7 +2586,8 @@ function deploy(){
   },140);
 }
 function endMatch(){
-  game.running=false;game.fireHeld=false;game.nadeAim=false;
+  game.running=false;
+  cleanupMatch();
   const earned=Math.round(game.score/5);
   tokens+=earned;
   sfx.matchEnd();
@@ -2542,8 +2649,25 @@ function endMatch(){
 }
 function pauseGame(){game.paused=true;pauseOverlay.classList.add('active');if(pointerLocked)document.exitPointerLock();}
 function resumeGame(){initAudio();game.paused=false;pauseOverlay.classList.remove('active');if(!IS_TOUCH)canvas.requestPointerLock();}
+function cleanupMatch(){
+  brClear();
+  scopeOverlay.classList.remove('active');
+  weapon.ads=false;weapon.adsLerp=0;game.fireHeld=false;game.fireJust=false;game.nadeAim=false;
+  for(const d of arcDots)d.visible=false;
+  for(const n of nades)scene.remove(n.m);
+  nades.length=0;
+  for(const t of tracers){scene.remove(t.l);t.l.geometry.dispose();}
+  tracers.length=0;
+  for(const n of dmgNums){scene.remove(n.sp);n.sp.material.map.dispose();n.sp.material.dispose();}
+  dmgNums.length=0;
+  for(const im of impacts)scene.remove(im.m);
+  impacts.length=0;
+  $('dmgDir').style.opacity='0';
+  camera.fov=75;camera.updateProjectionMatrix();
+}
 function quitToLobby(){
   mpDisconnect();
+  cleanupMatch();
   if(lobbyAv){lobbyAv.g.visible=true;lobbyAv.pad.visible=true;
     lobbyAv.g.position.set(3,groundH(3,6),6);lobbyAv.pad.position.set(3,groundH(3,6)+0.03,6);}
   game.running=false;game.paused=false;
@@ -2682,6 +2806,7 @@ function loop(now){
     renderer.render(weaponScene,weaponCam);
   }
 
+  if(emoteCd>0)emoteCd-=dt;
   fpsAcc+=1/dt;fpsN++;fpsTimer+=dt;
   if(fpsTimer>0.5){fpsCounter.textContent=Math.round(fpsAcc/fpsN)+' FPS';fpsAcc=0;fpsN=0;fpsTimer=0;}
 }
@@ -2692,6 +2817,7 @@ const lobbyCam=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,320);
 function boot(){
   buildWorld('day');
   lobbyAv=buildAvatar(0x3fae7a,'carbine');
+  applySkinTo(lobbyAv,profile.locker.body,profile.locker.hat);
   lobbyAv.g.position.set(3,groundH(3,6),6);
   scene.add(lobbyAv.g);
   const pad=new THREE.Mesh(new THREE.CircleGeometry(1.2,32),
