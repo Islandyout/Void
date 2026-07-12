@@ -549,6 +549,7 @@ button{font-family:inherit;}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1225,6 +1226,53 @@ function buildVM(key){
   VM[key]={g,fx,mag,arms};
 }
 for(const k of WORDER)buildVM(k);
+/* ---- Quaternius GLB viewmodels (CC0). Boxy guns remain as instant fallback ---- */
+const GUN_MODELS={
+  pistol:{file:'assets/guns/pistol.glb', len:0.34, y:-0.03, z:-0.02, flip:false},
+  carbine:{file:'assets/guns/carbine.glb',len:0.72, y:-0.02, z:-0.10, flip:false},
+  shotgun:{file:'assets/guns/shotgun.glb',len:0.78, y:-0.02, z:-0.12, flip:false},
+  sniper:{file:'assets/guns/sniper.glb', len:0.95, y:-0.02, z:-0.16, flip:false},
+  knife:{file:'assets/guns/knife.glb',  len:0.36, y:0.00,  z:-0.06, flip:false},
+};
+function loadGunModels(){
+  if(typeof THREE.GLTFLoader==='undefined')return;
+  const loader=new THREE.GLTFLoader();
+  for(const k of WORDER){
+    const cfg=GUN_MODELS[k];if(!cfg)continue;
+    loader.load(cfg.file,gltf=>{
+      const model=gltf.scene;
+      const box=new THREE.Box3().setFromObject(model);
+      const size=box.getSize(new THREE.Vector3());
+      const center=box.getCenter(new THREE.Vector3());
+      const holder=new THREE.Group();
+      model.position.sub(center);
+      holder.add(model);
+      if(size.x>size.z)holder.rotation.y=Math.PI/2;   // lay the long axis along Z
+      if(cfg.flip)holder.rotation.y+=Math.PI;          // muzzle toward -Z
+      holder.scale.setScalar(cfg.len/Math.max(size.x,size.z));
+      holder.position.set(0,cfg.y,cfg.z);
+      model.traverse(o=>{
+        if(o.isMesh){
+          o.material=o.material.clone();
+          o.material.roughness=0.55;o.material.metalness=0.25;
+          o.userData.baseColor=o.material.color.getHex();
+        }
+      });
+      const vm=VM[k];
+      vm.g.children.forEach(ch=>{
+        if(ch.userData.arm)return;                              // keep first-person arms
+        if(vm.fx&&(ch===vm.fx.f1||ch===vm.fx.f2||ch===vm.fx.fl))return; // keep muzzle flash
+        ch.visible=false;                                        // hide boxy gun
+      });
+      vm.att=null;vm.mag=null;                                   // attachment visuals off on models (stats unaffected)
+      vm.g.add(holder);
+      vm.model=holder;
+      applyCamos();
+      if(typeof showVM==='function'&&game&&!game.running)showVM&&0;
+    },undefined,()=>{});                                          // load fail => boxy fallback stays
+  }
+}
+loadGunModels();
 for(const k of WORDER){
   const vm=VM[k];if(WEAPONS[k].type==='Melee'||!vm.fx)continue;
   const tip=vm.fx.f1.position;
