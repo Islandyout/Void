@@ -898,8 +898,15 @@ function addBuilding(x,z,wC,dC,color){
   const base=groundH(x,z)-0.15;
   const B={x,z,base,color,cells:[],mesh:null};
   const w=wC*CELL,d=dC*CELL;
+  const twoStory=(wC>=5&&dC>=5);
+  const rows=twoStory?6:3;
   const doorSide=Math.floor(rnd()*4);
   const doorIdx=1+Math.floor(rnd()*((doorSide<2?wC:dC)-2));
+  const addCell=(cx,cy,cz,cw,ch,cd,roof,fc)=>{
+    const col={min:new THREE.Vector3(cx-cw/2,cy-ch/2,cz-cd/2),max:new THREE.Vector3(cx+cw/2,cy+ch/2,cz+cd/2)};
+    colliders.push(col);
+    B.cells.push({x:cx,y:cy,z:cz,w:cw,h:ch,d:cd,hp:150,col,roof:!!roof,fc:fc||0});
+  };
   const cellPos=(side,i,j)=>{
     if(side===0)return[x-w/2+CELL/2+i*CELL,base+CELL/2+j*CELL,z+d/2-WTH/2,CELL,CELL,WTH];
     if(side===1)return[x-w/2+CELL/2+i*CELL,base+CELL/2+j*CELL,z-d/2+WTH/2,CELL,CELL,WTH];
@@ -908,21 +915,55 @@ function addBuilding(x,z,wC,dC,color){
   };
   for(let side=0;side<4;side++){
     const n=(side<2?wC:dC);
-    for(let i=0;i<n;i++)for(let j=0;j<3;j++){
-      if(side===doorSide&&i===doorIdx&&j<2)continue;          // doorway
-      if(j===1&&rnd()<0.3&&!(side===doorSide&&i===doorIdx))continue; // window opening
+    for(let i=0;i<n;i++)for(let j=0;j<rows;j++){
+      if(side===doorSide&&i===doorIdx&&j<2)continue;                 // doorway
+      if((j===1||j===4)&&rnd()<0.3&&!(side===doorSide&&i===doorIdx))continue; // windows both floors
       const [cx,cy,cz,cw,ch,cd]=cellPos(side,i,j);
-      const col={min:new THREE.Vector3(cx-cw/2,cy-ch/2,cz-cd/2),max:new THREE.Vector3(cx+cw/2,cy+ch/2,cz+cd/2)};
-      colliders.push(col);
-      B.cells.push({x:cx,y:cy,z:cz,w:cw,h:ch,d:cd,hp:60,col,roof:false});
+      addCell(cx,cy,cz,cw,ch,cd,false);
     }
   }
-  for(let i=0;i<wC;i++)for(let k=0;k<dC;k++){          // walkable, breakable roof
-    const cx=x-w/2+CELL/2+i*CELL,cz=z-d/2+CELL/2+k*CELL,cy=base+3*CELL+0.15;
-    const col={min:new THREE.Vector3(cx-CELL/2,cy-0.15,cz-CELL/2),max:new THREE.Vector3(cx+CELL/2,cy+0.15,cz+CELL/2)};
-    colliders.push(col);
-    B.cells.push({x:cx,y:cy,z:cz,w:CELL,h:0.3,d:CELL,hp:60,col,roof:true});
+  let sx=0,stairDepth=0;
+  if(twoStory){
+    // staircase along the +X interior wall, rising toward -Z→+Z
+    sx=x+w/2-WTH-0.8;
+    const steps=9,stepD=0.5,rise=(3*CELL)/steps;
+    stairDepth=steps*stepD;
+    for(let s2=0;s2<steps;s2++)
+      addCell(sx,base+rise*(s2+1)-0.11,z-d/2+WTH+0.25+stepD*s2,1.4,0.22,stepD,false,0x9a6a3c);
+    // second floor slab with an opening above the stair run
+    const fy=base+3*CELL+0.11;
+    for(let i=0;i<wC;i++)for(let k=0;k<dC;k++){
+      const cx=x-w/2+CELL/2+i*CELL,cz=z-d/2+CELL/2+k*CELL;
+      if(Math.abs(cx-sx)<1.15&&cz<z-d/2+WTH+stairDepth+0.9)continue;
+      addCell(cx,fy,cz,CELL,0.22,CELL,true);
+    }
   }
+  // roof
+  const ry2=base+rows*CELL+0.15;
+  for(let i=0;i<wC;i++)for(let k=0;k<dC;k++)
+    addCell(x-w/2+CELL/2+i*CELL,ry2,z-d/2+CELL/2+k*CELL,CELL,0.3,CELL,true);
+  // furniture (destructible): tables+chairs / shelves / crate stacks
+  const WOOD=0x8a5a36,WOOD2=0xa9743c;
+  const furn=(fx2,fz2,fy2)=>{
+    const r=rnd();
+    if(r<0.5){
+      addCell(fx2,fy2+0.72,fz2,1.5,0.12,0.9,false,WOOD);       // table top
+      addCell(fx2,fy2+0.36,fz2,0.25,0.72,0.25,false,WOOD);     // pedestal
+      addCell(fx2-1.15,fy2+0.24,fz2,0.5,0.48,0.5,false,WOOD2); // chairs
+      addCell(fx2+1.15,fy2+0.24,fz2,0.5,0.48,0.5,false,WOOD2);
+    }else if(r<0.8){
+      addCell(fx2,fy2+0.5,fz2,1.6,0.1,0.5,false,WOOD);         // shelf unit
+      addCell(fx2,fy2+1.1,fz2,1.6,0.1,0.5,false,WOOD);
+      addCell(fx2-0.75,fy2+0.6,fz2,0.1,1.2,0.5,false,WOOD);
+      addCell(fx2+0.75,fy2+0.6,fz2,0.1,1.2,0.5,false,WOOD);
+    }else{
+      addCell(fx2,fy2+0.45,fz2,0.9,0.9,0.9,false,WOOD2);       // crate stack
+      addCell(fx2+0.2,fy2+1.2,fz2-0.1,0.6,0.6,0.6,false,WOOD2);
+    }
+  };
+  furn(x-w/4,z+d/4,base);
+  if(rnd()<0.75)furn(x+(twoStory?-w/6:w/5),z-d/4,base);
+  if(twoStory)furn(x-w/5,z+d/6,base+3*CELL+0.24);
   rebuildBuilding(B);buildings.push(B);
   return B;
 }
@@ -934,7 +975,7 @@ function rebuildBuilding(B){
     g.translate(cell.x,cell.y,cell.z);
     const pa=g.attributes.position.array,na=g.attributes.normal.array;
     for(let i=0;i<pa.length;i++){pos.push(pa[i]);nor.push(na[i]);}
-    const cc=cell.roof?rc:wc;
+    const cc=cell.fc?new THREE.Color(cell.fc):(cell.roof?rc:wc);
     for(let i=0;i<pa.length/3;i++)col3.push(cc.r,cc.g,cc.b);
     g.dispose();
   }
@@ -1112,8 +1153,8 @@ function buildWorld(key){
   addBox(0,-WORLD,WORLD*2,12,2,M.wall);addBox(0,WORLD,WORLD*2,12,2,M.wall);
   addBox(-WORLD,0,2,12,WORLD*2,M.wall);addBox(WORLD,0,2,12,WORLD*2,M.wall);
   let placed=0;
-  for(let i=0;i<60&&placed<11;i++){
-    const wC=4+Math.floor(rnd()*4),dC=4+Math.floor(rnd()*4);
+  for(let i=0;i<60&&placed<9;i++){
+    const wC=4+Math.floor(rnd()*5),dC=4+Math.floor(rnd()*5);
     const x=(rnd()*2-1)*(WORLD-16),z=(rnd()*2-1)*(WORLD-16);
     if(Math.hypot(x,z)<14)continue;
     if(slopeAt(x,z)>0.4||groundH(x,z)<M.terrain.waterY+0.5)continue;
@@ -1229,10 +1270,10 @@ for(const k of WORDER)buildVM(k);
 /* ---- Quaternius GLB viewmodels (CC0). Boxy guns remain as instant fallback ---- */
 const GUN_MODELS={
   pistol:{file:'assets/guns/pistol.glb', len:0.34, y:-0.03, z:-0.02, flip:false},
-  carbine:{file:'assets/guns/carbine.glb',len:0.72, y:-0.02, z:-0.10, flip:false},
-  shotgun:{file:'assets/guns/shotgun.glb',len:0.78, y:-0.02, z:-0.12, flip:false},
-  sniper:{file:'assets/guns/sniper.glb', len:0.95, y:-0.02, z:-0.16, flip:false},
-  knife:{file:'assets/guns/knife.glb',  len:0.36, y:0.00,  z:-0.06, flip:false},
+  carbine:{file:'assets/guns/carbine.glb',len:0.94, y:-0.015,z:-0.03, flip:false},
+  shotgun:{file:'assets/guns/shotgun.glb',len:0.94, y:-0.015,z:-0.03, flip:false},
+  sniper:{file:'assets/guns/sniper.glb', len:1.08, y:-0.015,z:-0.05, flip:false},
+  knife:{file:'assets/guns/knife.glb',  len:0.46, y:0.015, z:0.0,  flip:false},
 };
 function loadGunModels(){
   if(typeof THREE.GLTFLoader==='undefined')return;
@@ -1727,6 +1768,25 @@ function updatePlayer(dt){
     player.vel.y-=20*dt;
     player.pos.y+=player.vel.y*dt;
     resolveCollisions();
+  }
+  // auto step-up: stairs and ledges up to 0.55m are walkable, no jump needed
+  if(player.grounded&&player.moving&&player.mantleT<=0){
+    const sfx2=-Math.sin(player.yaw),sfz2=-Math.cos(player.yaw);
+    const spx=player.pos.x+sfx2*0.5,spz=player.pos.z+sfz2*0.5;
+    for(const c of colliders){
+      if(spx>c.min.x&&spx<c.max.x&&spz>c.min.z&&spz<c.max.z){
+        const top=c.max.y,rise2=top-player.pos.y;
+        if(rise2>0.04&&rise2<=0.55){
+          let ok=true;
+          for(const o of colliders){
+            if(o===c)continue;
+            if(spx>o.min.x&&spx<o.max.x&&spz>o.min.z&&spz<o.max.z&&o.min.y<top+1.7&&o.max.y>top+0.05){ok=false;break;}
+          }
+          if(ok){player.pos.y=top;player.vel.y=0;}
+          break;
+        }
+      }
+    }
   }
   const nowWater=player.pos.y<curTerrain.waterY-0.12;
   if(nowWater&&!player.inWater)noiseHit(0.32,0.28,550,0.7,'lowpass',0.5);
