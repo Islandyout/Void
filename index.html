@@ -693,6 +693,12 @@ const WEAPONS={
   carbine:{name:'VX-7 CARBINE',type:'Rifle',  dmg:22, rate:0.095,mag:30, res:90, adsFov:52, spread:0.020, kick:0.055, price:0,   auto:true,  reload:1.6},
   shotgun:{name:'BRUTE-12',    type:'Shotgun',dmg:9,  rate:0.85, mag:6,  res:24, adsFov:64, spread:0.075, kick:0.11,  price:600, auto:false, reload:2.1, pellets:8},
   sniper: {name:'LONGSHOT .50',type:'Sniper', dmg:95, rate:1.5,  mag:5,  res:20, adsFov:22, spread:0.001, kick:0.16,  price:900, auto:false, reload:2.4, scope:true},
+  revolver:{name:'JUDGE .44',  type:'Pistol', dmg:52, rate:0.6,  mag:6,  res:24, adsFov:58, spread:0.006, kick:0.13,  price:400, auto:false, reload:2.2},
+  smg:    {name:'VIPER SMG',   type:'SMG',    dmg:15, rate:0.065,mag:32, res:128,adsFov:58, spread:0.030, kick:0.045, price:700, auto:true,  reload:1.4},
+  sawed:  {name:'RIPSAW',      type:'Shotgun',dmg:11, rate:0.9,  mag:2,  res:18, adsFov:66, spread:0.11,  kick:0.16,  price:500, auto:false, reload:1.9, pellets:10},
+  dmr:    {name:'BULLPUP DMR', type:'Marksman',dmg:42,rate:0.34, mag:12, res:36, adsFov:40, spread:0.004, kick:0.09,  price:800, auto:false, reload:1.9},
+  pulse:  {name:'PULSE RIFLE', type:'Energy', dmg:18, rate:0.08, mag:45, res:135,adsFov:52, spread:0.016, kick:0.04,  price:1000,auto:true,  reload:1.7},
+  launcher:{name:'NOVA GL-9',  type:'Launcher',dmg:0, rate:1.2,  mag:4,  res:12, adsFov:60, spread:0,     kick:0.2,   price:1200,auto:false, reload:2.6},
 };
 const ATT_DEFS={
   mag:{name:'EXT MAG',unlock:5,desc:'+50% mag · slower reload'},
@@ -716,7 +722,7 @@ function toggleAtt(k,a){
   const st=wstate[k];if(st&&WEAPONS[k].mag)st.mag=Math.min(st.mag,effMag(k));
   applyAttachmentMeshes();updateAmmoUI();renderShop();
 }
-const WORDER=['knife','pistol','carbine','shotgun','sniper'];
+const WORDER=['knife','pistol','revolver','smg','carbine','pulse','shotgun','sawed','dmr','sniper','launcher'];
 let cur='carbine';
 const wstate={}; // per-match ammo
 function resetAmmo(){for(const k of WORDER){const W=WEAPONS[k];wstate[k]={mag:W.mag?effMag(k):0,res:W.res||0};}}
@@ -1239,6 +1245,33 @@ function buildVM(key){
     const sc=part(g,0.05,0.05,0.20,0,0.085,-0.10,0x11141a);sc.rotation.x=0;
     part(g,0.055,0.055,0.02,0,0.085,-0.21,0x3ddc97);
     fx=withFlash(g,-0.88);
+  }else if(key==='smg'){
+    part(g,0.05,0.07,0.30,0,0,-0.02,0x2a2f3a);part(g,0.03,0.03,0.14,0,0.01,-0.24,0x1c2028);
+    part(g,0.045,0.13,0.05,0,-0.09,0.04,0x353b48);mag=part(g,0.035,0.15,0.05,0,-0.11,-0.06,0x555c6b);
+    fx=withFlash(g,-0.36);
+  }else if(key==='sawed'){
+    part(g,0.06,0.07,0.34,0,0,-0.04,0x4d3620);part(g,0.055,0.055,0.26,0,0.045,-0.10,0x1c2028);
+    part(g,0.05,0.10,0.06,0,-0.08,0.06,0x3a2a1a);
+    fx=withFlash(g,-0.34);
+  }else if(key==='dmr'){
+    part(g,0.05,0.07,0.52,0,0,-0.08,0x2f3a2f);part(g,0.03,0.03,0.26,0,0.012,-0.46,0x1c2028);
+    part(g,0.04,0.05,0.14,0,0.07,-0.10,0x11141a);mag=part(g,0.04,0.12,0.06,0,-0.09,-0.02,0x555c6b);
+    part(g,0.045,0.13,0.05,0,-0.10,0.10,0x353b48);
+    fx=withFlash(g,-0.66);
+  }else if(key==='revolver'){
+    part(g,0.045,0.06,0.22,0,0.02,-0.08,0x353b48);part(g,0.06,0.07,0.08,0,0.005,0.0,0x2a2f3a);
+    part(g,0.045,0.12,0.05,0,-0.06,0.05,0x4d3620);
+    fx=withFlash(g,-0.30);
+  }else if(key==='pulse'){
+    part(g,0.055,0.08,0.44,0,0,-0.06,0x243043);part(g,0.04,0.04,0.24,0,0.01,-0.40,0x1a2333);
+    mag=part(g,0.045,0.12,0.07,0,-0.10,-0.10,0x2b4a6f);part(g,0.045,0.13,0.05,0,-0.10,0.06,0x353b48);
+    const gl=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.02,0.3),new THREE.MeshBasicMaterial({color:0x3ddc97}));
+    gl.position.set(0.03,0.02,-0.2);g.add(gl);
+    fx=withFlash(g,-0.60);
+  }else if(key==='launcher'){
+    part(g,0.09,0.10,0.40,0,0,-0.06,0x2f3a2f);part(g,0.075,0.075,0.20,0,0,-0.34,0x1c2028);
+    part(g,0.05,0.14,0.06,0,-0.11,0.06,0x353b48);part(g,0.05,0.05,0.12,0,0.08,-0.05,0x11141a);
+    fx=withFlash(g,-0.48);
   }else{ // knife
     part(g,0.012,0.05,0.24,0,0.02,-0.16,0xc8d2e0);part(g,0.012,0.02,0.24,0,0.055,-0.16,0x9aa6b8);
     part(g,0.03,0.04,0.10,0,0,0.02,0x353b48);part(g,0.04,0.05,0.02,0,0.01,-0.04,0x2a2f3a);
@@ -1274,7 +1307,34 @@ const GUN_MODELS={
   shotgun:{file:'assets/guns/shotgun.glb',len:0.94, y:-0.015,z:-0.03, flip:false},
   sniper:{file:'assets/guns/sniper.glb', len:1.08, y:-0.015,z:-0.05, flip:false},
   knife:{file:'assets/guns/knife.glb',  len:0.46, y:0.015, z:0.0,  flip:false},
+  revolver:{file:'assets/guns/revolver.glb',len:0.42,y:-0.03,z:-0.02,flip:false},
+  smg:{file:'assets/guns/smg.glb',      len:0.74, y:-0.02, z:-0.02, flip:false},
+  sawed:{file:'assets/guns/sawed.glb',  len:0.66, y:-0.02, z:-0.02, flip:false},
+  dmr:{file:'assets/guns/dmr.glb',      len:0.94, y:-0.015,z:-0.03, flip:false, scopeMod:true},
+  pulse:{file:'assets/guns/pulse.glb',  len:0.94, y:-0.015,z:-0.03, flip:false},
+  launcher:{file:'assets/guns/launcher.glb',len:0.90,y:-0.02,z:-0.04,flip:false},
 };
+GUN_MODELS.sniper.scopeMod=true;GUN_MODELS.sniper.bipodMod=true;
+function mountAttach(loader,holder,hostSize,file,kind){
+  loader.load(file,gltf=>{
+    const am=gltf.scene;
+    const ab=new THREE.Box3().setFromObject(am);
+    const asz=ab.getSize(new THREE.Vector3()),ac=ab.getCenter(new THREE.Vector3());
+    am.position.sub(ac);
+    const aw=new THREE.Group();aw.add(am);
+    if(asz.x>asz.z)aw.rotation.y=Math.PI/2;
+    const long=Math.max(asz.x,asz.z);
+    if(kind==='scope'){
+      aw.scale.setScalar((Math.max(hostSize.x,hostSize.z)*0.30)/long);
+      aw.position.set(0,hostSize.y*0.62,-Math.max(hostSize.x,hostSize.z)*0.05);
+    }else{ // bipod under the barrel
+      aw.scale.setScalar((Math.max(hostSize.x,hostSize.z)*0.22)/long);
+      aw.position.set(0,-hostSize.y*0.55,-Math.max(hostSize.x,hostSize.z)*0.30);
+    }
+    am.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.userData.baseColor=o.material.color.getHex();}});
+    holder.add(aw);
+  },undefined,()=>{});
+}
 function loadGunModels(){
   if(typeof THREE.GLTFLoader==='undefined')return;
   const loader=new THREE.GLTFLoader();
@@ -1308,6 +1368,8 @@ function loadGunModels(){
       vm.att=null;vm.mag=null;                                   // attachment visuals off on models (stats unaffected)
       vm.g.add(holder);
       vm.model=holder;
+      if(cfg.scopeMod)mountAttach(loader,holder,size,'assets/guns/scope.glb','scope');
+      if(cfg.bipodMod)mountAttach(loader,holder,size,'assets/guns/bipod.glb','bipod');
       applyCamos();
       if(typeof showVM==='function'&&game&&!game.running)showVM&&0;
     },undefined,()=>{});                                          // load fail => boxy fallback stays
@@ -1347,6 +1409,11 @@ const BOT_W={
   pistol: {range:14,eng:30,dmg:6, burst:2,burstGap:0.16,cd:[0.8,1.4],tracer:0xffa06b},
   shotgun:{range:8, eng:24,dmg:16,burst:1,burstGap:0,   cd:[1.2,2.0],tracer:0xffcf6b},
   sniper: {range:36,eng:60,dmg:30,burst:1,burstGap:0,   cd:[2.0,3.2],tracer:0xff4d4d},
+  smg:    {range:18,eng:34,dmg:5, burst:5,burstGap:0.07,cd:[0.9,1.5],tracer:0xffa06b},
+  revolver:{range:16,eng:30,dmg:14,burst:1,burstGap:0,  cd:[1.1,1.8],tracer:0xffcf6b},
+  sawed:  {range:7, eng:20,dmg:20,burst:1,burstGap:0,   cd:[1.4,2.2],tracer:0xffcf6b},
+  dmr:    {range:30,eng:55,dmg:18,burst:1,burstGap:0,   cd:[1.4,2.2],tracer:0xff6b6b},
+  pulse:  {range:22,eng:42,dmg:6, burst:4,burstGap:0.08,cd:[1.0,1.6],tracer:0x3ddc97},
 };
 const bots=[],botHittables=[];
 function makeFaceTex(){
@@ -1460,7 +1527,7 @@ const game={running:false,paused:false,kills:0,score:0,timeLeft:300,fireHeld:fal
   brOwned:['knife'],brRar:{},brWin:false,placement:0,stormT:0,stormTick:0,
   heals:{band:0,kit:0},healT:0,healDur:1,healKind:'',introT:0,introN:99,poiCur:'',qcCd:0};
 let dmgSrc='gun';
-const GG_LADDER=['pistol','carbine','shotgun','sniper','knife'];
+const GG_LADDER=['pistol','smg','carbine','pulse','shotgun','sawed','dmr','sniper','revolver','knife'];
 const buzz=p=>{if(IS_TOUCH&&navigator.vibrate)try{navigator.vibrate(p);}catch(e){}};
 
 /* ================= audio ================= */
@@ -1495,6 +1562,7 @@ function tone(vol,dur,f0,f1,type='sine',delay=0){
 }
 const sfx={
   shot(k){
+    k=({smg:'carbine',pulse:'carbine',dmr:'sniper',revolver:'pistol',sawed:'shotgun',launcher:'shotgun'})[k]||k;
     if(k==='pistol'){noiseHit(0.4,0.06,3200,0.8,'bandpass',1.6);tone(0.25,0.05,220,80,'triangle');}
     else if(k==='shotgun'){noiseHit(0.6,0.16,900,0.5,'bandpass',0.7);tone(0.45,0.14,110,40,'triangle');}
     else if(k==='sniper'){noiseHit(0.6,0.2,1600,0.4,'bandpass',1.1);tone(0.4,0.22,140,35,'sawtooth');}
@@ -1920,6 +1988,19 @@ function fireShot(){
   player.pitch=Math.min(1.45,player.pitch+(KICK*0.12+Math.random()*0.004)*(1-tight*0.5));
   player.yaw+=(Math.random()-0.5)*0.004*(1-tight*0.6);
   buzz(8);sfx.shot(cur);spawnShell();
+  if(W.type==='Launcher'){
+    ray.setFromCamera({x:0,y:0},camera);
+    const ldir=ray.ray.direction.clone();
+    const m=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,8),
+      new THREE.MeshStandardMaterial({color:0x3ddc97,emissive:0x1c8f5f,emissiveIntensity:0.8}));
+    m.position.copy(camera.position).addScaledVector(ldir,0.7);
+    scene.add(m);
+    nades.push({m,vel:ldir.multiplyScalar(26).add(new THREE.Vector3(0,1.6,0)),fuse:2.6,fromPlayer:true,impact:true});
+    if(mp.on&&mp.ch)mp.ch.send({type:'broadcast',event:'nade',payload:{from:mp.id,imp:1,
+      x:+m.position.x.toFixed(1),y:+m.position.y.toFixed(1),z:+m.position.z.toFixed(1),
+      vx:+ (ldir.x).toFixed(2),vy:+(ldir.y).toFixed(2),vz:+(ldir.z).toFixed(2)}});
+    return;
+  }
   fireSpread=Math.min(14,fireSpread+(W.pellets?6:3));
   const vm=curVM();
   if(vm.fx){vm.fx.fmat.opacity=0.95;vm.fx.fl.intensity=2.2;flashT=0.045;
@@ -2189,7 +2270,17 @@ function updateNades(dt){
     n.vel.y-=20*dt;
     n.m.position.addScaledVector(n.vel,dt);
     const gy=groundH(n.m.position.x,n.m.position.z)+0.16;
-    if(n.m.position.y<gy){n.m.position.y=gy;if(n.vel.y<0)n.vel.y*=-0.35;n.vel.x*=0.7;n.vel.z*=0.7;}
+    if(n.m.position.y<gy){
+      n.m.position.y=gy;
+      if(n.impact){n.fuse=0;}
+      else{if(n.vel.y<0)n.vel.y*=-0.35;n.vel.x*=0.7;n.vel.z*=0.7;}
+    }
+    if(n.impact&&n.fuse<2.5&&n.fuse>0){
+      const p2=n.m.position;
+      for(const c of colliders){
+        if(p2.x>c.min.x&&p2.x<c.max.x&&p2.y>c.min.y&&p2.y<c.max.y&&p2.z>c.min.z&&p2.z<c.max.z){n.fuse=0;break;}
+      }
+    }
     if(n.fuse<=0){
       const wasDead=player.dead;
       explode(n.m.position.clone(),n.fromPlayer);
@@ -2829,8 +2920,9 @@ function brRandSpot(min=8){
   return [20,20];
 }
 function spawnLoot(x,z,forceR){
-  const wkeys=['pistol','carbine','shotgun','sniper'];
-  const wk=wkeys[Math.floor(Math.random()*wkeys.length)];
+  const wkeys=['pistol','carbine','shotgun','sniper','smg','dmr','revolver','sawed','pulse'];
+  let wk=wkeys[Math.floor(Math.random()*wkeys.length)];
+  if(Math.random()<0.07)wk='launcher';
   const roll=Math.random();
   const rr=forceR!==undefined?forceR:(roll<0.45?0:roll<0.75?1:roll<0.92?2:3);
   const R=RARITIES[rr];
@@ -3124,7 +3216,10 @@ function mpNadeIn(p){
   if(!game.running)return;
   const m=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,8),new THREE.MeshStandardMaterial({color:0x3a4a3a,roughness:0.6}));
   m.position.set(p.x,p.y,p.z);scene.add(m);
-  nades.push({m,vel:new THREE.Vector3(p.vx,p.vy,p.vz),fuse:2.2,fromPlayer:false,mpFrom:p.from});
+  const isL=!!p.imp;
+  nades.push({m,vel:isL?new THREE.Vector3(p.vx,p.vy,p.vz).multiplyScalar(26).add(new THREE.Vector3(0,1.6,0))
+                     :new THREE.Vector3(p.vx,p.vy,p.vz),
+    fuse:isL?2.6:2.2,fromPlayer:false,mpFrom:p.from,impact:isL});
 }
 function mpTick(dt){
   if(!mp.on)return;
@@ -3247,7 +3342,7 @@ function startMatch(){
     b.hp=100;b.hpMax=100;b.dmgScale=1;b.alive=true;b.matchKills=0;b.tgt=null;b.ggTier=0;
     b.pos.copy(randomSpawn());b.parts.g.rotation.x=0;b.parts.g.visible=true;b.state='patrol';
     if(game.mode==='br'){
-      const wk=['pistol','carbine','shotgun','sniper'][Math.floor(Math.random()*4)];
+      const wk=['pistol','carbine','shotgun','sniper','smg','dmr'][Math.floor(Math.random()*6)];
       setBotWeapon(b,wk);
       b.dmgScale=RARITIES[Math.floor(Math.random()*3)].m;
     }else setBotWeapon(b,game.mode==='gg'?GG_LADDER[0]:BOT_LOADOUT[b.id%BOT_LOADOUT.length]);
