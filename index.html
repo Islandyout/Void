@@ -350,7 +350,8 @@ button{font-family:inherit;}
   </div>
   <div id="loginToast"></div>
   <div id="lobbyLeft">
-    <div class="seasonCard"><div class="seasonSub">SEASON ONE</div><div class="seasonTitle">BLOCKWORLD</div></div>
+    <div class="seasonCard"><div class="seasonSub" id="seasonSub">SEASON ONE</div><div class="seasonTitle" id="seasonTitle">BLOCKWORLD</div>
+      <div id="titleLine" style="font-size:11px;letter-spacing:2px;color:var(--accent);font-weight:700;margin-top:3px;"></div></div>
     <div class="lvlCard">
       <div id="lvlBadge">LVL 1</div>
       <div style="flex:1"><div class="xpTrack" style="width:100%;"><div class="fill" id="lvlFill"></div></div>
@@ -396,6 +397,8 @@ button{font-family:inherit;}
 <div id="statsScreen" class="overlay" style="z-index:95;justify-content:flex-start;padding-top:calc(20px + env(safe-area-inset-top,0px));overflow-y:auto;">
   <h2 style="font-size:24px;">CAREER STATS</h2>
   <div id="statsGrid" style="width:100%;max-width:900px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;"></div>
+  <div class="panelHead" style="width:100%;max-width:900px;">TITLES</div>
+  <div id="statsTitles" style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:6px;"></div>
   <div class="panelHead" style="width:100%;max-width:900px;">WEAPON RECORD</div>
   <div id="statsWeapons" style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:6px;"></div>
   <button class="menuBtn" id="statsBack">Back</button>
@@ -494,13 +497,33 @@ button{font-family:inherit;}
   <button class="menuBtn" id="btnQuit">Quit to Lobby</button>
 </div>
 
-<div class="overlay" id="mpJoin" style="z-index:97;">
-  <h2>ONLINE MATCH</h2>
+<div class="overlay" id="mpJoin" style="z-index:97;gap:10px;overflow-y:auto;">
+  <h2>ONLINE</h2>
   <input id="mpName" maxlength="12" placeholder="YOUR NAME" class="mpInput">
-  <input id="mpRoom" maxlength="6" placeholder="ROOM CODE" class="mpInput" style="text-transform:uppercase;">
-  <div style="color:var(--muted);font-size:11px;letter-spacing:1px;max-width:300px;text-align:center;">
-    Share the room code — anyone entering the same code lands in your arena.</div>
-  <button class="menuBtn primary" id="mpGo">Join / Create Room</button>
+  <div id="mmStatus" style="display:none;color:var(--accent2);font-size:13px;letter-spacing:2px;font-weight:700;"></div>
+  <div style="display:flex;gap:10px;">
+    <button class="menuBtn primary" id="mmSolo" style="min-width:150px;padding:11px 16px;">QUICK MATCH<br><span style="font-size:10px;letter-spacing:2px;">SOLO</span></button>
+    <button class="menuBtn primary" id="mmDuo" style="min-width:150px;padding:11px 16px;background:linear-gradient(135deg,#3ddc97,#1c9f68);">QUICK MATCH<br><span style="font-size:10px;letter-spacing:2px;">DUOS / TEAMS</span></button>
+  </div>
+  <button class="menuBtn" id="mmCancel" style="display:none;border-color:#ff8f6b;color:#ff8f6b;">Cancel Search</button>
+  <div class="panelHead" style="width:min(340px,86vw);">PARTY</div>
+  <div id="partyBox" style="display:flex;flex-direction:column;align-items:center;gap:8px;width:min(340px,86vw);">
+    <div id="partyNone" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;">
+      <button class="menuBtn" id="partyCreate" style="min-width:0;padding:9px 18px;font-size:12px;">Create Party</button>
+      <input id="partyCode" maxlength="4" placeholder="CODE" class="mpInput" style="width:90px;padding:9px;font-size:14px;">
+      <button class="menuBtn" id="partyJoin" style="min-width:0;padding:9px 18px;font-size:12px;">Join</button>
+    </div>
+    <div id="partyIn" style="display:none;flex-direction:column;align-items:center;gap:5px;">
+      <div style="font-size:14px;font-weight:700;letter-spacing:3px;">PARTY <span id="partyCodeShow" style="color:var(--accent);"></span></div>
+      <div id="partyMembers" style="font-size:12px;color:var(--muted);letter-spacing:1px;text-align:center;"></div>
+      <button class="menuBtn" id="partyLeave" style="min-width:0;padding:7px 16px;font-size:11px;">Leave Party</button>
+    </div>
+  </div>
+  <div class="panelHead" style="width:min(340px,86vw);">PRIVATE ROOM</div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input id="mpRoom" maxlength="6" placeholder="ROOM CODE" class="mpInput" style="width:140px;text-transform:uppercase;">
+    <button class="menuBtn" id="mpGo" style="min-width:0;padding:10px 18px;font-size:12px;">Join / Create</button>
+  </div>
   <button class="menuBtn" id="mpBack">Back</button>
 </div>
 
@@ -578,7 +601,9 @@ function DIFF(){return DIFFS[S.diff]||DIFFS.regular;}
 function saveS(){localStorage.setItem('vx_settings',JSON.stringify(S));}
 let profile=JSON.parse(localStorage.getItem('vx_profile')||'null')||{xp:0,wxp:{},daily:{date:'',list:[]},stats:{},att:{}};
 profile.att=profile.att||{};
-profile.stats=Object.assign({matches:0,kills:0,hs:0,deaths:0,brWins:0,bestWave:0,shots:0,hits:0},profile.stats||{});
+profile.stats=Object.assign({matches:0,kills:0,hs:0,deaths:0,brWins:0,bestWave:0,shots:0,hits:0,mpKills:0,waterKills:0,cells:0},profile.stats||{});
+profile.season=profile.season||1;
+profile.titles=profile.titles||{owned:[],eq:''};
 function saveProfile(){localStorage.setItem('vx_profile',JSON.stringify(profile));save();}
 function lvlInfo(xp){let l=1,need=400;while(xp>=need){xp-=need;l++;need=400+(l-1)*150;}return{l,into:xp,need};}
 /* weapon camo tiers by kills */
@@ -675,6 +700,9 @@ function renderLobby(){
   $('lvlBadge').textContent='LVL '+L.l;
   $('lvlFill').style.width=Math.round(L.into/L.need*100)+'%';
   $('xpToGo').textContent=(L.need-L.into)+' XP TO GO';
+  $('seasonSub').textContent='SEASON '+profile.season;
+  $('seasonTitle').textContent=seasonName(profile.season);
+  $('titleLine').textContent=profile.titles.eq?'✦ '+profile.titles.eq:'';
   $('tokenBal').textContent=tokens;
   const bar=$('dailyBar');bar.innerHTML='';
   for(const c of profile.daily.list){
@@ -1014,6 +1042,7 @@ function damageWallAt(B,point,dmg){
 }
 function destroyCell(B,cell,skipRebuild){
   const i=B.cells.indexOf(cell);if(i<0)return;
+  if(game.running)profile.stats.cells++;
   B.cells.splice(i,1);
   const ci=colliders.indexOf(cell.col);if(ci>=0)colliders.splice(ci,1);
   spawnDebris(new THREE.Vector3(cell.x,cell.y,cell.z),B.color,6,4.2,0.22,0.9);
@@ -1508,7 +1537,7 @@ function drawBotLabel(bot){
   const x=bot.labelCanvas.getContext('2d');x.clearRect(0,0,256,64);
   x.font='700 24px system-ui,sans-serif';x.textAlign='center';
   x.strokeStyle='rgba(0,0,0,.75)';x.lineWidth=5;x.strokeText(bot.name,128,24);
-  x.fillStyle='#fff';x.fillText(bot.name,128,24);
+  x.fillStyle=bot.ally?'#7dffb0':'#fff';x.fillText(bot.name,128,24);
   x.fillStyle='rgba(0,0,0,.55)';x.fillRect(46,34,164,14);
   const mx=bot.hpMax||100,pct=Math.max(0,bot.hp)/mx;
   x.fillStyle=pct>0.5?'#3ddc97':pct>0.25?'#ffb020':'#ff3b5c';
@@ -2017,7 +2046,7 @@ function fireShot(){
     let best=null,bestAng=tight>0.5?0.045:0.075;
     const cands=[];
     for(const b of bots)if(b.alive)cands.push(b.pos);
-    for(const id in mp.remotes)if(!mp.remotes[id].dead)cands.push(mp.remotes[id].pos);
+    for(const id in mp.remotes)if(!mp.remotes[id].dead&&!isAlly(id))cands.push(mp.remotes[id].pos);
     for(const cp of cands){
       const chest=cp.clone().setY(cp.y+1.3);
       const to=chest.sub(camera.position);const dist=to.length();
@@ -2046,6 +2075,7 @@ function fireShot(){
       const rm=h.object.userData.remote;
       if(rm){
         if(rm.dead)continue;
+        if(isAlly(rm.id)){end=h.point;break;}   // teammates block bullets but take no damage
         end=h.point;
         game.hits++;
         const part=h.object.userData.part,head=part==='head';
@@ -2289,6 +2319,7 @@ function updateNades(dt){
     if(n.fuse<=0){
       const wasDead=player.dead;
       explode(n.m.position.clone(),n.fromPlayer);
+      if(false)0;else if(mp.on&&n.mpFrom&&isAlly(n.mpFrom)){/* ally nade: no kill credit chain */}
       if(mp.on&&n.mpFrom&&!wasDead&&player.dead&&mp.ch)
         mp.ch.send({type:'broadcast',event:'kill',payload:{killer:n.mpFrom,victim:mp.id,vn:mp.name,head:false}});
       scene.remove(n.m);nades.splice(i,1);
@@ -2360,7 +2391,8 @@ function advanceBotGG(bot){
 }
 function ggWin(playerWon,bot){
   if(!game.running)return;
-  if(playerWon){game.score+=500;statScore.textContent=game.score;game.ggResult='VICTORY';game.placement=1;trackEv('ggwin');}
+  if(playerWon){game.score+=500;statScore.textContent=game.score;game.ggResult='VICTORY';game.placement=1;trackEv('ggwin');
+    if(game.deaths===0)grantTitle('FLAWLESS');}
   else game.ggResult='DEFEAT — '+bot.name+' finished first';
   endMatch();
 }
@@ -2405,6 +2437,7 @@ function damageBot(bot,dmg,head,point){
     }
     if(head){game.hsCount++;profile.stats.hs++;trackEv('hs');}
     profile.stats.kills++;
+    if(player.inWater)profile.stats.waterKills++;
     if(game.mode==='gg'&&dmgSrc==='gun'){
       game.ggTier++;
       if(game.ggTier>=GG_LADDER.length)ggWin(true,null);
@@ -2724,7 +2757,7 @@ function updateCrosshairHover(dt){
   let enemy=false;
   if(hits.length){
     const b=hits[0].object.userData.bot,r=hits[0].object.userData.remote;
-    enemy=!!(b&&b.alive)||!!(r&&!r.dead);
+    enemy=!!(b&&b.alive)||!!(r&&!r.dead&&!isAlly(r.id));
   }
   $('crosshair').classList.toggle('enemy',enemy);
 }
@@ -2757,8 +2790,10 @@ function drawMinimap(dt){
   mm.fillStyle='#ff5252';
   for(const id in mp.remotes){
     const r=mp.remotes[id];if(r.dead)continue;
+    mm.fillStyle=isAlly(id)?'#5ba8ff':'#ff5252';
     mm.beginPath();mm.arc((r.pos.x-player.pos.x)*scale,(r.pos.z-player.pos.z)*scale,4,0,7);mm.fill();
   }
+  mm.fillStyle='#ff5252';
   for(const b of bots){
     if(!b.alive)continue;
     const d=b.pos.distanceTo(player.pos);
@@ -2821,6 +2856,9 @@ const EMOTES={wave:{p:0,name:'WAVE'},spin:{p:400,name:'SPIN'}};
 profile.locker=profile.locker||{body:'green',hat:'none',emote:'wave',owned:['green','none','wave']};
 function lockerOwns(id){return profile.locker.owned.includes(id);}
 function buildHat(key){
+  const def=HATS[key]||{};
+  const tint=def.c;
+  if(def.base)key=def.base;
   const g=new THREE.Group();
   const hp=(w,hh,d,x,y,z,c)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),mat(c,0.6));m.position.set(x,y,z);g.add(m);return m;};
   if(key==='visor'){const v=hp(0.54,0.13,0.1,0,1.92,0.27,0x11141a);
@@ -2832,6 +2870,7 @@ function buildHat(key){
     const r=hp(0.09,0.26,0.09,0.22,2.24,0,0xc93b4e);r.rotation.z=-0.4;}
   else if(key==='crown'){hp(0.54,0.13,0.54,0,2.18,0,0xffb020);
     for(let i=0;i<4;i++)hp(0.08,0.14,0.08,(i-1.5)*0.15,2.3,0.24,0xffb020);}
+  if(tint)g.traverse(o=>{if(o.isMesh&&o.material&&!o.material.isMeshBasicMaterial)o.material=new THREE.MeshStandardMaterial({color:tint,roughness:0.6});});
   return g;
 }
 function applySkinTo(av,body,hat){
@@ -2848,12 +2887,28 @@ function renderLocker(){
     for(const id in items){
       const it=items[id],ownedIt=lockerOwns(id),eq=profile.locker[kind]===id;
       const card=document.createElement('div');card.className='lockCard'+(eq?' eq':ownedIt?'':' lk');
-      const sw=kind==='body'?`<div class="swatch" style="background:#${it.c.toString(16).padStart(6,'0')}"></div>`
+      if(it.pass&&!ownedIt&&it.pass<profile.season)continue;
+      const sw=(kind==='body'||it.c!==undefined)?`<div class="swatch" style="background:#${(it.c||0x182238).toString(16).padStart(6,'0')}"></div>`
         :`<div class="swatch" style="display:flex;align-items:center;justify-content:center;font-size:16px;background:#182238;">${kind==='hat'?'👒':'♪'}</div>`;
       card.innerHTML=sw+`<div class="lockName">${(it.name||id).toUpperCase()}</div>
-        <div class="lockPrice">${eq?'EQUIPPED':ownedIt?'EQUIP':'◈ '+it.p}</div>`;
+        <div class="lockPrice">${eq?'EQUIPPED':ownedIt?'EQUIP':it.pass?'PASS S'+it.pass:'◈ '+it.p}</div>`;
+      if(it.pass&&ownedIt&&!eq){
+        const sellB=document.createElement('div');
+        sellB.className='lockPrice';sellB.style.color='#ff8f6b';
+        sellB.textContent='SELL +'+it.sell+' ◈';
+        sellB.addEventListener('click',ev=>{
+          ev.stopPropagation();
+          if(sellB.dataset.arm){
+            tokens+=it.sell;
+            profile.locker.owned=profile.locker.owned.filter(o=>o!==id);
+            saveProfile();sfx.buy();renderLocker();
+          }else{sellB.dataset.arm='1';sellB.textContent='TAP AGAIN TO SELL';}
+        });
+        card.appendChild(sellB);
+      }
       card.addEventListener('click',()=>{
         if(!ownedIt){
+          if(it.pass)return;
           if(tokens<it.p)return;
           tokens-=it.p;profile.locker.owned.push(id);sfx.buy();
         }
@@ -3060,24 +3115,91 @@ function updateBR(dt){
 
 /* ================= season pass ================= */
 const PASS_TIERS=25;
-function passReward(t){return t%5===0?250:40+t*10;}
+const SEASON_NAMES=['','BLOCKWORLD','MAGMA RISING','DEEP FREEZE','NEON DRIFT','JUNGLE LAW','VOID WALKER','GOLD RUSH','STORM FRONT'];
+function seasonName(s){return SEASON_NAMES[((s-1)%(SEASON_NAMES.length-1))+1];}
+function seedCol(s,i){
+  const hue=((s*97+i*53)%360)/360;
+  const c=new THREE.Color();c.setHSL(hue,0.72,0.52);return c.getHex();
+}
+function seasonItems(s){
+  const nm=seasonName(s);
+  return {
+    5:{kind:'body',id:'s'+s+'b1',name:nm+' DAWN',c:seedCol(s,1),sell:150},
+    10:{kind:'hat',id:'s'+s+'h1',name:nm+' CREST',base:['cap','visor','tophat','horns','crown'][s%5],c:seedCol(s,2),sell:250},
+    15:{kind:'body',id:'s'+s+'b2',name:nm+' STORM',c:seedCol(s,3),sell:150},
+    20:{kind:'emote',id:'s'+s+'e1',name:nm+' '+(s%2?'SPIN':'WAVE'),base:s%2?'spin':'wave',sell:200},
+    25:{kind:'body',id:'s'+s+'b3',name:nm+' APEX',c:seedCol(s,4),sell:400},
+  };
+}
+function registerSeasonItems(s){
+  const items=seasonItems(s);
+  for(const t in items){
+    const it=items[t];
+    const reg=it.kind==='body'?BODIES:it.kind==='hat'?HATS:EMOTES;
+    if(!reg[it.id])reg[it.id]={c:it.c,base:it.base,p:0,pass:s,name:it.name,sell:it.sell};
+  }
+}
+for(let s2=1;s2<=profile.season;s2++)registerSeasonItems(s2);
+function seasonRollover(){
+  profile.season++;profile.xp=0;profile.passClaimed=[];
+  registerSeasonItems(profile.season);
+  saveProfile();
+  const tst=$('loginToast');
+  tst.textContent='SEASON '+profile.season+' — '+seasonName(profile.season)+' BEGINS';
+  tst.classList.remove('show');void tst.offsetWidth;tst.classList.add('show');
+  if(actx){tone(0.3,0.12,523,784,'square');tone(0.3,0.18,784,1175,'square',0.15);}
+}
+const ACH_DEFS=[
+  {id:'WARLORD',   desc:'Eliminate 100 players online',      c:st=>st.mpKills>=100,   p:st=>st.mpKills+'/100'},
+  {id:'POSEIDON',  desc:'69 kills while standing in water',  c:st=>st.waterKills>=69, p:st=>st.waterKills+'/69'},
+  {id:'WRECKER',   desc:'Destroy 150 wall blocks',           c:st=>st.cells>=150,     p:st=>st.cells+'/150'},
+  {id:'ROYALTY',   desc:'Win 5 Victory Royales',             c:st=>st.brWins>=5,      p:st=>st.brWins+'/5'},
+  {id:'HEADHUNTER',desc:'500 headshot eliminations',         c:st=>st.hs>=500,        p:st=>st.hs+'/500'},
+  {id:'SURVIVOR X',desc:'Reach wave 10 in Survival',         c:st=>st.bestWave>=10,   p:st=>st.bestWave+'/10'},
+  {id:'FLAWLESS',  desc:'Win a Gun Game without dying',      c:()=>false, manual:true,p:()=>'—'},
+];
+function grantTitle(id){
+  if(profile.titles.owned.includes(id))return;
+  profile.titles.owned.push(id);
+  if(!profile.titles.eq)profile.titles.eq=id;
+  saveProfile();
+  showCenterMsg('TITLE UNLOCKED — '+id);
+  addKillEntry('Title unlocked: '+id);
+  tone(0.3,0.15,659,988,'square');buzz([30,50,30]);
+}
+function checkAchievements(){
+  for(const a of ACH_DEFS)if(!a.manual&&!profile.titles.owned.includes(a.id)&&a.c(profile.stats))grantTitle(a.id);
+}
+function passReward(t){
+  const it=seasonItems(profile.season)[t];
+  return it?it:{t:t%5===0?250:40+t*10};
+}
 function renderPass(){
   profile.passClaimed=profile.passClaimed||[];
-  $('passTokens').textContent='◈ '+tokens;
+  $('passTokens').textContent='◈ '+tokens+'  ·  SEASON '+profile.season+' — '+seasonName(profile.season);
   const L=lvlInfo(profile.xp);
   const tr=$('passTrack');tr.innerHTML='';
   for(let t=1;t<=PASS_TIERS;t++){
+    const rw=passReward(t);
     const reached=L.l>=t,claimed=profile.passClaimed.includes(t);
     const card=document.createElement('div');
     card.className='wcard'+(claimed?' owned':'');
-    card.style.minWidth='120px';
-    card.innerHTML=`<div class="wtype">TIER ${t}${t%5===0?' ★':''}</div><h3 style="font-size:20px;color:var(--accent);">+${passReward(t)} ◈</h3>
-      <div class="wstats">${reached?'':'Reach LVL '+t}</div>`;
+    card.style.minWidth='128px';
+    card.innerHTML=rw.kind
+      ?`<div class="wtype">TIER ${t} ★ ${rw.kind.toUpperCase()}</div>
+         <div class="swatch" style="background:#${(rw.c||0x8a5cc9).toString(16).padStart(6,'0')};margin:4px auto;"></div>
+         <h3 style="font-size:12px;">${rw.name}</h3><div class="wstats">Pass exclusive</div>`
+      :`<div class="wtype">TIER ${t}${t%5===0?' ★':''}</div><h3 style="font-size:20px;color:var(--accent);">+${rw.t} ◈</h3>
+         <div class="wstats">${reached?'':'Reach LVL '+t}</div>`;
     const btn=document.createElement('button');
     btn.className='buyBtn'+(claimed?' owned':reached?'':' cant');
     btn.textContent=claimed?'CLAIMED':reached?'CLAIM':'LOCKED';
     if(reached&&!claimed)btn.addEventListener('click',()=>{
-      tokens+=passReward(t);profile.passClaimed.push(t);saveProfile();sfx.buy();renderPass();
+      if(rw.kind)profile.locker.owned.push(rw.id);
+      else tokens+=rw.t;
+      profile.passClaimed.push(t);saveProfile();sfx.buy();
+      if(profile.passClaimed.length>=PASS_TIERS)seasonRollover();
+      renderPass();
     });
     card.appendChild(btn);tr.appendChild(card);
   }
@@ -3092,6 +3214,19 @@ function renderStats(){
   $('statsGrid').innerHTML=items.map(([l,v])=>
     `<div class="wcard" style="align-items:center;text-align:center;">
       <h3 style="font-size:24px;color:var(--accent);">${v}</h3><div class="wtype">${l}</div></div>`).join('');
+  $('statsTitles').innerHTML=ACH_DEFS.map(a=>{
+    const own=profile.titles.owned.includes(a.id),eq2=profile.titles.eq===a.id;
+    return `<div class="attRow" data-t="${a.id}" style="cursor:${own?'pointer':'default'};font-size:12px;${eq2?'border-bottom-color:var(--accent2);':''}">
+      <span>${own?'✦ ':''}${a.id}<span style="color:var(--muted);font-size:10px;"> — ${a.desc}</span></span>
+      <span class="attState">${eq2?'EQUIPPED':own?'EQUIP':a.p(profile.stats)}</span></div>`;
+  }).join('');
+  $('statsTitles').querySelectorAll('[data-t]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const id=el.dataset.t;
+      if(!profile.titles.owned.includes(id))return;
+      profile.titles.eq=id;saveProfile();renderStats();renderLobby&&0;
+    });
+  });
   $('statsWeapons').innerHTML=WORDER.map(k=>{
     const W=WEAPONS[k],kc=wKills(k),t=camoTier(k);
     return `<div class="attRow" style="cursor:default;font-size:12px;">
@@ -3107,7 +3242,8 @@ $('passBack').addEventListener('click',()=>{$('passScreen').classList.remove('ac
 /* ================= multiplayer ================= */
 const SB_URL='https://xgdmelrhfoeiudhiarfj.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnZG1lbHJoZm9laXVkaGlhcmZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MDk5MzMsImV4cCI6MjA5Njk4NTkzM30.TVjp-Nwf70SdY4uS2lMN7WijHgidmUDY0_v2FZjNGvU';
-const mp={on:false,ch:null,id:Math.random().toString(36).slice(2,9),name:'',room:'',remotes:{},sendT:0,roster:{}};
+const mp={on:false,ch:null,id:Math.random().toString(36).slice(2,9),name:'',room:'',remotes:{},sendT:0,roster:{},teams:{},myTeam:''};
+function isAlly(id){return !!mp.teams[id]&&mp.teams[id]===mp.myTeam&&id!==mp.id;}
 const mpHittables=[];
 function mpConnect(room,name,cb){
   if(typeof supabase==='undefined'){cb(false,'Multiplayer library failed to load');return;}
@@ -3144,9 +3280,137 @@ function mpConnect(room,name,cb){
   setTimeout(()=>{if(!done){done=true;cb(false,'Connection timed out');}},10000);
 }
 function mpDisconnect(){
+  mmStop();
   if(mp.ch){try{mp.ch.unsubscribe();}catch(e){}mp.ch=null;}
-  mp.on=false;
+  mp.on=false;mp.teams={};mp.myTeam='';
   for(const id in mp.remotes)mpRemove(id);
+}
+/* ---------- serverless matchmaking: queue channel + captain coordination ---------- */
+const mm={ch:null,searching:false,mode:'solo',tick:null};
+const party={ch:null,code:'',members:{},leader:false};
+function sbClient(){return window._sb||(window._sb=supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:40}}}));}
+function partySize(){return Math.max(1,Object.keys(party.members).length);}
+function partyIds(){return Object.keys(party.members).filter(id=>id!==mp.id);}
+function partyLeaderId(){
+  const es=Object.entries(party.members).sort((a,b)=>(a[1].t-b[1].t)||(a[0]<b[0]?-1:1));
+  return es.length?es[0][0]:mp.id;
+}
+function renderParty(){
+  const inP=!!party.ch;
+  $('partyNone').style.display=inP?'none':'flex';
+  $('partyIn').style.display=inP?'flex':'none';
+  if(inP){
+    $('partyCodeShow').textContent=party.code;
+    party.leader=(partyLeaderId()===mp.id);
+    $('partyMembers').textContent=Object.values(party.members).map(m=>m.name+(m.id===partyLeaderId()?' ★':'')).join(' · ')||'…';
+  }
+}
+function partyConnect(code,cb){
+  if(typeof supabase==='undefined'){cb&&cb(false);return;}
+  partyLeaveQuiet();
+  party.code=code;
+  party.ch=sbClient().channel('vxp-'+code,{config:{presence:{key:mp.id}}});
+  party.ch.on('presence',{event:'sync'},()=>{
+    const st=party.ch.presenceState();
+    party.members={};
+    for(const k in st){const p=st[k][0]||{};party.members[k]={id:k,name:p.name||'Player',t:p.t||0};}
+    renderParty();
+  });
+  party.ch.on('broadcast',{event:'go'},({payload:p})=>{
+    if(!game.running)mmEnterRoom(p.room,p.teams);
+  });
+  party.ch.on('broadcast',{event:'search'},({payload:p})=>{
+    if(partyLeaderId()!==mp.id){
+      $('mmStatus').style.display='block';
+      $('mmStatus').textContent=p.on?'LEADER IS SEARCHING…':'';
+      if(!p.on)$('mmStatus').style.display='none';
+    }
+  });
+  party.ch.subscribe(async s=>{
+    if(s==='SUBSCRIBED'){await party.ch.track({name:$('mpName').value.trim()||S.name||'PLAYER',t:Date.now()});renderParty();cb&&cb(true);}
+  });
+}
+function partyLeaveQuiet(){if(party.ch){try{party.ch.unsubscribe();}catch(e){}party.ch=null;party.members={};party.code='';}}
+function mmSeats(e){return 1+((e.members&&e.members.length)||0);}
+function mmStart(mode){
+  if(typeof supabase==='undefined'||mm.searching)return;
+  if(party.ch&&partyLeaderId()!==mp.id){$('mmStatus').style.display='block';$('mmStatus').textContent='ONLY THE PARTY LEADER ★ CAN QUEUE';return;}
+  mm.mode=mode;mm.searching=true;
+  $('mmStatus').style.display='block';$('mmStatus').textContent='SEARCHING…';
+  $('mmCancel').style.display='block';
+  if(party.ch)party.ch.send({type:'broadcast',event:'search',payload:{on:true}});
+  mm.ch=sbClient().channel('vx-mm-'+mode,{config:{presence:{key:mp.id},broadcast:{self:true}}});
+  mm.ch.on('presence',{event:'sync'},mmEval);
+  mm.ch.on('broadcast',{event:'launch'},({payload:p})=>{
+    if(p.teams[mp.id]&&mm.searching){
+      mmStop(true);
+      if(party.ch&&party.leader)party.ch.send({type:'broadcast',event:'go',payload:{room:p.room,teams:p.teams}});
+      mmEnterRoom(p.room,p.teams);
+    }
+  });
+  mm.ch.subscribe(async s=>{
+    if(s==='SUBSCRIBED')await mm.ch.track({t:Date.now(),members:partyIds(),name:$('mpName').value.trim()||'PLAYER'});
+  });
+  mm.tick=setInterval(mmEval,1000);
+}
+function mmStop(keepUI){
+  mm.searching=false;
+  if(mm.tick){clearInterval(mm.tick);mm.tick=null;}
+  if(mm.ch){try{mm.ch.unsubscribe();}catch(e){}mm.ch=null;}
+  if(!keepUI){
+    $('mmStatus').style.display='none';$('mmCancel').style.display='none';
+    if(party.ch)party.ch.send({type:'broadcast',event:'search',payload:{on:false}});
+  }
+}
+function mmEval(){
+  if(!mm.searching||!mm.ch)return;
+  const st=mm.ch.presenceState();
+  const entries=Object.entries(st).map(([id,v])=>({id,t:(v[0]&&v[0].t)||0,members:(v[0]&&v[0].members)||[]}))
+    .sort((a,b)=>(a.t-b.t)||(a.id<b.id?-1:1));
+  if(!entries.length)return;
+  // my group: fill rooms of 10 in queue order
+  const groups=[];let cur2=[],seats=0;
+  for(const e of entries){
+    const s2=mmSeats(e);
+    if(seats+s2>10&&cur2.length){groups.push(cur2);cur2=[];seats=0;}
+    cur2.push(e);seats+=s2;
+  }
+  if(cur2.length)groups.push(cur2);
+  const myG=groups.find(g=>g.some(e=>e.id===mp.id));
+  if(!myG)return;
+  const total=myG.reduce((a,e)=>a+mmSeats(e),0);
+  const waited=(Date.now()-myG[0].t)/1000;
+  const eta=Math.max(0,Math.ceil(15-waited));
+  $('mmStatus').textContent=`SEARCHING · ${total}/10 PLAYERS · ${total>=10?'LAUNCHING':total>=2?'STARTS IN '+eta+'s':'NEED 1 MORE'}`;
+  // captain (first in group) launches
+  if(myG[0].id!==mp.id)return;
+  if(total>=10||(total>=2&&waited>=15)){
+    const teams={};let tn=0,pendingSolo=null;
+    for(const e of myG){
+      const ids=[e.id,...(e.members||[])];
+      if(mm.mode==='duo'&&ids.length===1){
+        if(pendingSolo){teams[e.id]=pendingSolo;pendingSolo=null;}
+        else{tn++;teams[e.id]='T'+tn;pendingSolo='T'+tn;}
+      }else{tn++;ids.forEach(id=>teams[id]='T'+tn);}
+    }
+    const room='M'+Math.random().toString(36).slice(2,6).toUpperCase();
+    mm.ch.send({type:'broadcast',event:'launch',payload:{room,teams}});
+  }
+}
+function mmEnterRoom(room,teams){
+  mp.teams=teams||{};mp.myTeam=mp.teams[mp.id]||('S'+mp.id);
+  const name=($('mpName').value.trim()||S.name||'PLAYER').slice(0,12);
+  S.name=name;saveS();
+  $('mpJoin').classList.remove('active');
+  $('mmStatus').style.display='none';$('mmCancel').style.display='none';
+  loadScreen.classList.add('active');
+  $('loadStatus').textContent='Match found — connecting…';
+  $('loadFill').style.width='60%';
+  mpConnect(room,name,(ok)=>{
+    if(ok){$('loadFill').style.width='100%';setTimeout(startMatch,400);
+      if(!IS_TOUCH)setTimeout(()=>canvas.requestPointerLock(),700);}
+    else{loadScreen.classList.remove('active');$('mpJoin').classList.add('active');}
+  });
 }
 function mpRemove(id){
   const r=mp.remotes[id];if(!r)return;
@@ -3161,6 +3425,7 @@ function mpEnsure(p){
     r=mp.remotes[p.id]={id:p.id,name:p.n||'Player',hp:100,hpMax:100,parts:av,
       pos:new THREE.Vector3(p.x,p.y,p.z),target:new THREE.Vector3(p.x,p.y,p.z),tYaw:p.ya||0,wkey:p.w||'carbine',dead:false,walk:0,walkT:0};
     av.g.position.copy(r.pos);scene.add(av.g);
+    r.ally=isAlly(p.id);
     av.g.traverse(o=>{if(o.isMesh){o.userData.remote=r;o.userData.part=(o===av.head?'head':(o.userData.zone||'body'));mpHittables.push(o);}});
     makeBotLabel(r);
     refreshHittables();
@@ -3173,7 +3438,9 @@ function mpState(p){
   const r=mpEnsure(p);
   r.target.set(p.x,p.y,p.z);
   r.tYaw=p.ya+Math.PI; // camera yaw convention (0 = -Z) vs avatar model front (+Z): flip 180°
-  r.name=p.n||r.name;r.walk=p.mv;
+  const dn=p.t?((p.n||'Player')+' ✦'+p.t):(p.n||r.name);
+  if(dn!==r.name){r.name=dn;drawBotLabel(r);}
+  r.walk=p.mv;
   if(p.hp!==undefined&&p.hp!==r.hp){r.hp=p.hp;drawBotLabel(r);}
   if(p.w&&p.w!==r.wkey){
     r.wkey=p.w;
@@ -3201,6 +3468,7 @@ function mpShot(p){
 }
 function mpHit(p){
   if(p.to!==mp.id||player.dead||!game.running)return;
+  if(isAlly(p.from))return;
   damagePlayer(p.dmg);
   showDamageDir(new THREE.Vector3(p.fx,player.pos.y,p.fz));
   if(player.dead&&mp.ch)
@@ -3221,6 +3489,7 @@ function mpKill(p){
     profile.wxp[cur]=profile.wxp[cur]||{kills:0};profile.wxp[cur].kills++;
     trackEv('kill');trackEv('kill_'+cur);checkCamo(cur);
     profile.stats.kills++;
+    profile.stats.mpKills++;
     if(mp.ch)mp.ch.track({name:mp.name,kills:game.kills});
     sfx.kill();buzz([25,40,25]);
   }
@@ -3234,6 +3503,7 @@ function mpKill(p){
 }
 function mpNadeIn(p){
   if(!game.running)return;
+  if(isAlly(p.from))return;  // ally grenades are cosmetic-free: skip local sim entirely
   const m=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,8),new THREE.MeshStandardMaterial({color:0x3a4a3a,roughness:0.6}));
   m.position.set(p.x,p.y,p.z);scene.add(m);
   const isL=!!p.imp;
@@ -3252,7 +3522,7 @@ function mpTick(dt){
     r.parts.g.rotation.y+=dy*Math.min(1,dt*10);
     if(r.emoteT>0&&!r.dead){
       r.emoteT-=dt;
-      if(r.emoteKind==='spin')r.parts.g.rotation.y+=dt*8;
+      if(((EMOTES[r.emoteKind]&&EMOTES[r.emoteKind].base)||r.emoteKind)==='spin')r.parts.g.rotation.y+=dt*8;
       r.parts.armL.rotation.z=1.3+Math.sin(perfT*9)*0.5;
       r.parts.armR.rotation.z=-1.3-Math.sin(perfT*9+1)*0.5;
       if(r.emoteT<=0){r.parts.armL.rotation.z=0;r.parts.armR.rotation.z=0;}
@@ -3269,7 +3539,7 @@ function mpTick(dt){
       id:mp.id,n:mp.name,
       x:+player.pos.x.toFixed(2),y:+player.pos.y.toFixed(2),z:+player.pos.z.toFixed(2),
       ya:+player.yaw.toFixed(2),hp:Math.round(player.hp),w:cur,d:player.dead?1:0,mv:player.moving?1:0,
-      sk:profile.locker.body,ht:profile.locker.hat}});
+      sk:profile.locker.body,ht:profile.locker.hat,t:profile.titles.eq||''}});
   }
 }
 
@@ -3397,6 +3667,7 @@ function endMatch(){
   profile.stats.shots+=game.shots;profile.stats.hits+=game.hits;
   if(game.mode==='br'&&game.brWin)profile.stats.brWins++;
   if(game.mode==='sv')profile.stats.bestWave=Math.max(profile.stats.bestWave,game.wave);
+  checkAchievements();
   /* XP + level up bonus */
   const before=lvlInfo(profile.xp);
   profile.xp+=game.score;
@@ -3417,7 +3688,7 @@ function endMatch(){
     for(const key in mp.roster){
       if(key===mp.id)continue;
       const pr=(mp.roster[key]&&mp.roster[key][0])||{};
-      rows.push({name:pr.name||'Player',k:pr.kills||0,s:(pr.kills||0)*100,me:false});
+      rows.push({name:(isAlly(key)?'🛡 ':'')+(pr.name||'Player'),k:pr.kills||0,s:(pr.kills||0)*100,me:false});
     }
     mpDisconnect();
   }else{
@@ -3551,7 +3822,19 @@ $('btnPlay').addEventListener('click',async()=>{
   deploy();
   if(!IS_TOUCH)setTimeout(()=>canvas.requestPointerLock(),1400);
 });
-$('mpBack').addEventListener('click',()=>{$('mpJoin').classList.remove('active');menuScreen.classList.add('active');});
+$('mpBack').addEventListener('click',()=>{mmStop();$('mpJoin').classList.remove('active');menuScreen.classList.add('active');});
+$('mmSolo').addEventListener('click',()=>{initAudio();mmStart('solo');});
+$('mmDuo').addEventListener('click',()=>{initAudio();mmStart('duo');});
+$('mmCancel').addEventListener('click',()=>mmStop());
+$('partyCreate').addEventListener('click',()=>{
+  initAudio();
+  partyConnect(Math.random().toString(36).slice(2,6).toUpperCase());
+});
+$('partyJoin').addEventListener('click',()=>{
+  const c=$('partyCode').value.trim().toUpperCase();
+  if(c.length>=3){initAudio();partyConnect(c);}
+});
+$('partyLeave').addEventListener('click',()=>{partyLeaveQuiet();renderParty();});
 $('mpGo').addEventListener('click',async()=>{
   const name=($('mpName').value.trim()||'PLAYER').slice(0,12);
   let room=$('mpRoom').value.trim().toUpperCase();
@@ -3566,6 +3849,7 @@ $('mpGo').addEventListener('click',async()=>{
     try{await document.documentElement.requestFullscreen({navigationUI:'hide'});}catch(e){}
     try{await screen.orientation.lock('landscape');}catch(e){}
   }
+  mp.teams={};mp.myTeam='S'+mp.id;
   mpConnect(room,name,(ok,err)=>{
     if(ok){
       $('loadFill').style.width='100%';
