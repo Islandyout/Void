@@ -908,8 +908,9 @@ function addBuilding(x,z,wC,dC,color){
   const rows=twoStory?6:3;
   const doorSide=Math.floor(rnd()*4);
   const doorIdx=1+Math.floor(rnd()*((doorSide<2?wC:dC)-2));
-  const addCell=(cx,cy,cz,cw,ch,cd,roof,fc)=>{
-    const col={min:new THREE.Vector3(cx-cw/2,cy-ch/2,cz-cd/2),max:new THREE.Vector3(cx+cw/2,cy+ch/2,cz+cd/2)};
+  const addCell=(cx,cy,cz,cw,ch,cd,roof,fc,noExt)=>{
+    const ext=(ch<0.35&&!noExt)?0.65:0;  // thin walkable slabs get a deep collider so fast falls can't tunnel through
+    const col={min:new THREE.Vector3(cx-cw/2,cy-ch/2-ext,cz-cd/2),max:new THREE.Vector3(cx+cw/2,cy+ch/2,cz+cd/2)};
     colliders.push(col);
     B.cells.push({x:cx,y:cy,z:cz,w:cw,h:ch,d:cd,hp:150,col,roof:!!roof,fc:fc||0});
   };
@@ -948,6 +949,10 @@ function addBuilding(x,z,wC,dC,color){
   const ry2=base+rows*CELL+0.15;
   for(let i=0;i<wC;i++)for(let k=0;k<dC;k++)
     addCell(x-w/2+CELL/2+i*CELL,ry2,z-d/2+CELL/2+k*CELL,CELL,0.3,CELL,true);
+  // exterior climbing ledges on the back wall -> roof access (destructible: shoot them off)
+  const lx=x-w/2+CELL*1.2, lz=z-d/2-0.42;
+  const ledgeYs=twoStory?[base+2.3,base+4.6,base+6.9]:[base+2.4];
+  for(const ly of ledgeYs)addCell(lx,ly,lz,1.5,0.25,0.55,false,0x9a6a3c,true);
   // furniture (destructible): tables+chairs / shelves / crate stacks
   const WOOD=0x8a5a36,WOOD2=0xa9743c;
   const furn=(fx2,fz2,fy2)=>{
@@ -1368,8 +1373,6 @@ function loadGunModels(){
       vm.att=null;vm.mag=null;                                   // attachment visuals off on models (stats unaffected)
       vm.g.add(holder);
       vm.model=holder;
-      if(cfg.scopeMod)mountAttach(loader,holder,size,'assets/guns/scope.glb','scope');
-      if(cfg.bipodMod)mountAttach(loader,holder,size,'assets/guns/bipod.glb','bipod');
       applyCamos();
       if(typeof showVM==='function'&&game&&!game.running)showVM&&0;
     },undefined,()=>{});                                          // load fail => boxy fallback stays
@@ -1834,6 +1837,7 @@ function updatePlayer(dt){
   if(player.mantleT<=0){
     if(keys['Space']&&player.grounded){player.vel.y=player.inWater?5.0:7.4;player.grounded=false;sfx.jump();}
     player.vel.y-=20*dt;
+    if(player.vel.y<-11)player.vel.y=-11;
     player.pos.y+=player.vel.y*dt;
     resolveCollisions();
   }
@@ -2151,6 +2155,7 @@ function updateWeapon(dt){
     }
   }
   const W=WEAPONS[cur],st=wstate[cur],gun=curVM().g;
+  for(const k of WORDER)if(k!==cur&&VM[k].g.visible)VM[k].g.visible=false;
   if(weapon.switchT>0){
     weapon.switchT-=dt;
     gun.position.y=GUN_REST.y-Math.sin((weapon.switchT/0.28)*Math.PI)*0.22;
@@ -2407,6 +2412,11 @@ function damageBot(bot,dmg,head,point){
         cur=GG_LADDER[game.ggTier];
         const W2=WEAPONS[cur];
         if(W2.mag)wstate[cur]={mag:effMag(cur),res:(W2.res||0)*3};
+        // hard equip: cancel every in-flight state from the old weapon
+        weapon.reloading=false;reloadBar.style.display='none';reloadFill.style.background='';
+        weapon.ads=false;weapon.adsLerp=0;
+        scopeOverlay.classList.remove('active');
+        weapon.switchT=0.28;weapon.cooldown=0.3;
         showVM();applyCamos();updateAmmoUI();
         showCenterMsg('WEAPON UP — '+W2.name);sfx.swap();
       }
@@ -2936,12 +2946,12 @@ function spawnLoot(x,z,forceR){
 }
 function spawnHeal(x,z,kind){
   const g=new THREE.Group();
-  const c=kind==='kit'?0xff3b5c:0xffffff;
+  const c=kind==='kit'?0xff3b5c:kind==='plate'?0x2f8dff:0xffffff;
   const box=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.45,0.45),
     new THREE.MeshStandardMaterial({color:0xffffff,emissive:c,emissiveIntensity:0.5,roughness:0.4}));
   g.add(box);
   const cross=new THREE.Mesh(new THREE.PlaneGeometry(0.3,0.3),
-    new THREE.MeshBasicMaterial({color:kind==='kit'?0xff3b5c:0x3ddc97}));
+    new THREE.MeshBasicMaterial({color:kind==='kit'?0xff3b5c:kind==='plate'?0x9fd0ff:0x3ddc97}));
   cross.position.z=0.24;g.add(cross);
   g.position.set(x,groundH(x,z)+0.7,z);scene.add(g);
   brLoot.push({g,heal:kind,baseY:g.position.y});
@@ -2961,8 +2971,13 @@ function brStart(){
   game.stormT=0;game.stormTick=0;
   stormMesh.visible=true;stormMesh.scale.set(160,1,160);
   for(let i=0;i<24;i++){const [x,z]=brRandSpot();spawnLoot(x,z);}
-  for(let i=0;i<10;i++){const [x,z]=brRandSpot();spawnHeal(x,z,Math.random()<0.7?'band':'kit');}
-  for(let i=0;i<9;i++){const [x,z]=brRandSpot(14);spawnChest(x,z);}
+  for(let i=0;i<10;i++){const [x,z]=brRandSpot();const r2=Math.random();spawnHeal(x,z,r2<0.55?'band':r2<0.8?'plate':'kit');}
+  let inChests=0;
+  for(const B of buildings){
+    if(inChests>=4)break;
+    if(Math.random()<0.6){spawnChest(B.x+0.6,B.z+0.6);inChests++;}
+  }
+  for(let i=inChests;i<9;i++){const [x,z]=brRandSpot(14);spawnChest(x,z);}
 }
 function brPickupWeapon(L){
   const R=RARITIES[L.rr],W=WEAPONS[L.wk];
@@ -2990,7 +3005,12 @@ function updateBR(dt){
     L.g.position.y=L.baseY+Math.sin(perfT*2.4+L.baseY)*0.12;
     if(!player.dead&&L.g.position.distanceTo(camera.position)<2.0){
       if(L.heal){
-        if(L.heal==='band'&&game.heals.band<5)game.heals.band++;
+        if(L.heal==='plate'){
+          if(player.armor>=100)continue;
+          player.armor=Math.min(100,player.armor+40);
+          updateHealthUI();showCenterMsg('ARMOR +40');
+        }
+        else if(L.heal==='band'&&game.heals.band<5)game.heals.band++;
         else if(L.heal==='kit'&&game.heals.kit<2)game.heals.kit++;
         else continue;
         sfx.pickup();buzz(12);updateAmmoUI();
@@ -3008,7 +3028,7 @@ function updateBR(dt){
       sfx.buy();buzz([20,30,20]);trackEv('chest');
       spawnLoot(c.g.position.x+1.2,c.g.position.z, Math.random()<0.5?2:3);
       spawnLoot(c.g.position.x-1.2,c.g.position.z);
-      spawnHeal(c.g.position.x,c.g.position.z+1.2,Math.random()<0.6?'band':'kit');
+      spawnHeal(c.g.position.x,c.g.position.z+1.2,Math.random()<0.5?'band':Math.random()<0.6?'plate':'kit');
       game.nades=Math.min(4,game.nades+1);updateAmmoUI();
       addKillEntry('Chest opened');
     }
