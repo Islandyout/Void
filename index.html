@@ -231,8 +231,8 @@ button{font-family:inherit;}
 @media (pointer:coarse){
   /* ZONES — top-left column: minimap > bars > utility row. bottom-left: joystick only.
      bottom-center: weapon/ammo. right: action cluster. top-right: pause. */
-  .bottomLeft{bottom:auto;top:calc(140px + env(safe-area-inset-top,0px));gap:5px;}
-  .statBar{width:148px;height:13px;font-size:10px;}
+  .bottomLeft{left:50%;transform:translateX(-50%);bottom:calc(1.2vh + 76px);top:auto;gap:4px;align-items:center;}
+  .statBar{width:150px;height:12px;font-size:10px;}
   .bottomRight{right:auto;left:50%;transform:translateX(-50%);bottom:1.2vh;text-align:center;}
   #ammoCounter{font-size:22px;text-shadow:none;}
   #weaponName{font-size:10px;}
@@ -292,23 +292,23 @@ button{font-family:inherit;}
 #btnWpn{right:calc(9vw + 19vmin + 15vmin + env(safe-area-inset-right,0px));bottom:5vh;width:11vmin;height:11vmin;font-size:10px;}
 #btnCrouch{right:calc(2vw + env(safe-area-inset-right,0px));bottom:2vh;width:11vmin;height:11vmin;font-size:9px;}
 /* left-hand: fire/ads pair mid-left above the stick, gyro above them */
-#btnShootL{left:calc(37vmin + env(safe-area-inset-left,0px));bottom:37vmin;width:13vmin;height:13vmin;background:rgba(255,59,92,.2);border-color:rgba(255,59,92,.45);}
-#btnADSL{left:calc(41vmin + env(safe-area-inset-left,0px));bottom:calc(37vmin + 15vmin);width:11vmin;height:11vmin;border-color:rgba(61,220,151,.6);}
-#btnGyro{left:calc(20px + 18vmin + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:9px;border-color:rgba(125,140,173,.6);}
+#btnShootL{left:calc(38vmin + env(safe-area-inset-left,0px));bottom:33vmin;width:13vmin;height:13vmin;background:rgba(255,59,92,.2);border-color:rgba(255,59,92,.45);}
+#btnADSL{left:calc(38vmin + 15vmin + env(safe-area-inset-left,0px));bottom:35vmin;width:10vmin;height:10vmin;border-color:rgba(61,220,151,.6);}
+#btnGyro{left:calc(20px + 18vmin + env(safe-area-inset-left,0px));top:calc(142px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:9px;border-color:rgba(125,140,173,.6);}
 #poiBanner{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);
   font-size:20px;font-weight:700;letter-spacing:5px;color:#fff;text-shadow:0 0 16px rgba(61,220,151,.7);
   opacity:0;pointer-events:none;}
 #poiBanner.show{animation:poiIn 2.4s ease-out;}
 @keyframes poiIn{0%{opacity:0;transform:translateX(-50%) translateY(-8px);}15%{opacity:1;transform:translateX(-50%) translateY(0);}75%{opacity:1;}100%{opacity:0;}}
 #btnHeal{right:calc(6vw + 19vmin + 13vmin + env(safe-area-inset-right,0px));bottom:calc(24vh + 13vmin);width:10vmin;height:10vmin;font-size:16px;border-color:rgba(61,220,151,.7);display:none;}
-#btnQC{left:calc(32px + 36vmin + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:12px;border-color:rgba(111,195,255,.6);display:none;}
-#qcStrip{position:absolute;left:calc(14px + env(safe-area-inset-left,0px));top:calc(204px + 9vmin + env(safe-area-inset-top,0px));
+#btnQC{left:calc(32px + 36vmin + env(safe-area-inset-left,0px));top:calc(142px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:12px;border-color:rgba(111,195,255,.6);display:none;}
+#qcStrip{position:absolute;left:calc(14px + env(safe-area-inset-left,0px));top:calc(150px + 9vmin + env(safe-area-inset-top,0px));
   display:none;flex-direction:row;flex-wrap:wrap;gap:6px;max-width:70vw;z-index:62;pointer-events:auto;}
 #qcStrip.open{display:flex;}
 .qcOpt{background:rgba(20,28,45,.85);border:1px solid rgba(111,195,255,.5);border-radius:6px;padding:8px 14px;
   font-size:12px;font-weight:700;letter-spacing:1px;color:var(--text);}
 #healCount{font-size:12px;color:#3ddc97;letter-spacing:1px;display:none;}
-#btnEmote{left:calc(26px + 27vmin + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:15px;border-color:rgba(138,92,201,.6);}
+#btnEmote{left:calc(26px + 27vmin + env(safe-area-inset-left,0px));top:calc(142px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:15px;border-color:rgba(138,92,201,.6);}
 .lockRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
 .lockCard{background:rgba(10,16,28,.45);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;display:flex;flex-direction:column;
   align-items:center;gap:6px;cursor:pointer;backdrop-filter:blur(8px);}
@@ -319,8 +319,8 @@ button{font-family:inherit;}
 .lockPrice{font-size:10px;color:var(--accent);font-weight:700;}
 .lockCard.eq .lockPrice{color:var(--accent2);}
 /* lean pair tucked directly below the minimap */
-#btnLeanL{left:calc(14px + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:14px;}
-#btnLeanR{left:calc(17px + 9vmin + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:14px;}
+#btnLeanL{left:calc(14px + env(safe-area-inset-left,0px));top:calc(142px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:14px;}
+#btnLeanR{left:calc(17px + 9vmin + env(safe-area-inset-left,0px));top:calc(142px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:14px;}
 #btnPause{right:calc(10px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));width:9vmin;height:9vmin;font-size:16px;border-color:rgba(255,255,255,.35);z-index:70;}
 
 /* ---------- overlays ---------- */
@@ -1702,6 +1702,13 @@ addEventListener('contextmenu',e=>e.preventDefault());
 const joy={active:false,id:null,cx:0,cy:0,x:0,y:0};
 const joyBase=$('joyBase'),joyStick=$('joyStick');
 if(IS_TOUCH){
+  // recover fullscreen if the OS bar reappears mid-match
+  document.addEventListener('touchend',()=>{
+    if(game.running&&!document.fullscreenElement){
+      document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
+      try{screen.orientation.lock('landscape');}catch(e){}
+    }
+  },{passive:true});
   const joyZone=$('joyZone'),lookZone=$('lookZone');
   const JMAX=()=>Math.min(innerWidth,innerHeight)*0.14; // half of 32vmin base minus stick
   // fixed stick: anchored center-left, not wherever the thumb lands
@@ -1712,6 +1719,7 @@ if(IS_TOUCH){
     joyBase.style.left=joy.cx+'px';joyBase.style.top=joy.cy+'px';
   };
   window.joyShow=on=>{joyAnchor();joyBase.style.display=on?'flex':'none';joyBase.style.opacity=on?'0.55':'';};
+  window.joyAnchor=joyAnchor;
   addEventListener('resize',()=>{if(joyBase.style.display==='flex')joyAnchor();});
   joyZone.addEventListener('touchstart',e=>{
     const t=e.changedTouches[0];
@@ -3433,7 +3441,11 @@ function mmEval(){
     mm.ch.send({type:'broadcast',event:'launch',payload:{room,teams}});
   }
 }
-function mmEnterRoom(room,teams){
+async function mmEnterRoom(room,teams){
+  if(IS_TOUCH){
+    try{await document.documentElement.requestFullscreen({navigationUI:'hide'});}catch(e){}
+    try{await screen.orientation.lock('landscape');}catch(e){}
+  }
   mp.teams=teams||{};mp.myTeam=mp.teams[mp.id]||('S'+mp.id);
   const name=($('mpName').value.trim()||S.name||'PLAYER').slice(0,12);
   S.name=name;saveS();
@@ -4025,6 +4037,7 @@ function loop(now){
   }
 
   if(emoteCd>0)emoteCd-=dt;
+  if(IS_TOUCH&&game.running&&window.joyAnchor&&!joy.active)window.joyAnchor();
   updateAmbient(dt);
   fpsAcc+=1/dt;fpsN++;fpsTimer+=dt;
   if(fpsTimer>0.5){fpsCounter.textContent=Math.round(fpsAcc/fpsN)+' FPS';fpsAcc=0;fpsN=0;fpsTimer=0;}
