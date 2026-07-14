@@ -231,11 +231,14 @@ button{font-family:inherit;}
 @media (pointer:coarse){
   /* ZONES — top-left column: minimap > bars > utility row. bottom-left: joystick only.
      bottom-center: weapon/ammo. right: action cluster. top-right: pause. */
-  .bottomLeft{left:50%;transform:translateX(-50%);bottom:calc(1.2vh + 76px);top:auto;gap:4px;align-items:center;}
-  .statBar{width:150px;height:12px;font-size:10px;}
-  .bottomRight{right:auto;left:50%;transform:translateX(-50%);bottom:1.2vh;text-align:center;}
-  #ammoCounter{font-size:22px;text-shadow:none;}
-  #weaponName{font-size:10px;}
+  .bottomLeft{left:50%;transform:translateX(-50%);bottom:calc(1.2vh + 52px);top:auto;gap:3px;align-items:center;}
+  .statBar{width:140px;height:10px;font-size:9px;}
+  .bottomRight{right:auto;left:50%;transform:translateX(-50%);bottom:1.2vh;text-align:center;opacity:0.92;}
+  #ammoCounter{font-size:15px;text-shadow:none;font-weight:700;}
+  #ammoCounter .reserve{font-size:11px;}
+  #weaponName{font-size:8px;letter-spacing:2px;opacity:0.85;}
+  #nadeCount{font-size:9px;}
+  #healCount{font-size:10px;}
   #reloadBar{margin-left:auto;margin-right:auto;}
   #fpsCounter{top:auto;left:auto;bottom:3px;right:5px;font-size:9px;}
   #killfeed{top:calc(64px + env(safe-area-inset-top,0px));}
@@ -1715,7 +1718,7 @@ if(IS_TOUCH){
   const joyAnchor=()=>{
     const vm=Math.min(innerWidth,innerHeight)/100;
     joy.cx=20*vm;
-    joy.cy=innerHeight-22*vm;
+    joy.cy=innerHeight-27*vm;
     joyBase.style.left=joy.cx+'px';joyBase.style.top=joy.cy+'px';
   };
   window.joyShow=on=>{joyAnchor();joyBase.style.display=on?'flex':'none';joyBase.style.opacity=on?'0.55':'';};
@@ -3424,11 +3427,14 @@ function mmEval(){
   if(!myG)return;
   const total=myG.reduce((a,e)=>a+mmSeats(e),0);
   const waited=(Date.now()-myG[0].t)/1000;
-  const eta=Math.max(0,Math.ceil(15-waited));
-  $('mmStatus').textContent=`SEARCHING · ${total}/10 PLAYERS · ${total>=10?'LAUNCHING':total>=2?'STARTS IN '+eta+'s':'NEED 1 MORE'}`;
+  // countdown scales with fill: 2 players = 2:00, each extra player shaves it, full room = 10s
+  const thresh=total>=10?10:Math.max(10,120-(total-2)*(110/8));
+  const eta=Math.max(0,Math.ceil(thresh-waited));
+  const etaTxt=eta>=60?Math.floor(eta/60)+':'+String(eta%60).padStart(2,'0'):eta+'s';
+  $('mmStatus').textContent=`SEARCHING · ${total}/10 PLAYERS · ${total>=2?'STARTS IN '+etaTxt:'NEED 1 MORE'}`;
   // captain (first in group) launches
   if(myG[0].id!==mp.id)return;
-  if(total>=10||(total>=2&&waited>=15)){
+  if(total>=2&&waited>=thresh){
     const teams={};let tn=0,pendingSolo=null;
     for(const e of myG){
       const ids=[e.id,...(e.members||[])];
