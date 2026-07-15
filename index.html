@@ -105,6 +105,26 @@ button{font-family:inherit;}
 #settingsScreen{touch-action:auto;}
 #settingsScreen input[type=range]{touch-action:auto;width:min(240px,50vw);accent-color:var(--accent);}
 .setRow{display:flex;align-items:center;gap:14px;}
+#setHead{display:flex;align-items:center;gap:10px;width:100%;padding:calc(10px + env(safe-area-inset-top,0px)) 18px 10px;box-sizing:border-box;}
+#setTabs{display:flex;gap:2px;width:100%;padding:0 18px;box-sizing:border-box;border-bottom:1px solid var(--edge);}
+.setTab{padding:9px 18px;font-size:11px;letter-spacing:2px;font-weight:700;color:var(--muted);background:rgba(20,28,45,.55);
+  border:1px solid var(--edge);border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer;user-select:none;}
+.setTab.active{color:var(--text);background:rgba(40,52,78,.85);border-color:var(--accent);}
+#setBody{flex:1;overflow-y:auto;width:100%;padding:12px 18px calc(20px + env(safe-area-inset-bottom,0px));box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:center;}
+.setPage{display:none;flex-direction:column;gap:8px;width:min(720px,100%);}
+.setPage.active{display:flex;}
+.mixRow{display:flex;align-items:center;gap:12px;width:100%;background:rgba(18,26,42,.75);border:1px solid var(--edge);
+  border-radius:8px;padding:11px 16px;box-sizing:border-box;}
+.mixRow>label{font-size:11px;letter-spacing:2px;font-weight:700;color:var(--text);flex:1;}
+.mixCtl{display:flex;align-items:center;gap:10px;}
+.muteBtn{width:36px;height:30px;border-radius:6px;border:1px solid var(--edge);background:rgba(40,52,78,.7);font-size:14px;cursor:pointer;}
+.muteBtn.muted{opacity:0.45;border-color:#ff8f6b;}
+.mixVal{width:34px;text-align:center;font-size:12px;font-weight:700;color:var(--accent);background:rgba(10,16,28,.8);
+  border:1px solid var(--edge);border-radius:5px;padding:5px 2px;}
+.mixCtl input[type=range]{width:min(200px,34vw);accent-color:var(--accent);}
+.toggBtn{min-width:86px;padding:7px 14px;font-size:11px;}
+.toggBtn.off{opacity:0.5;border-color:var(--muted);color:var(--muted);}
 .setRow label{width:140px;font-size:13px;letter-spacing:1px;color:var(--text);text-align:right;}
 .setRow .sval{width:40px;font-size:12px;color:var(--accent);font-weight:700;}
 #mpJoin{touch-action:auto;}
@@ -568,16 +588,42 @@ body.hudEditing #hudEditBar{display:flex;}
   <button class="menuBtn" id="mpBack">Back</button>
 </div>
 
-<div class="overlay" id="settingsScreen" style="z-index:96;">
-  <h2>SETTINGS</h2>
-  <div class="setRow"><label>Look sensitivity</label><input type="range" id="sLook" min="0.4" max="2.2" step="0.1"><span class="sval" id="vLook"></span></div>
-  <div class="setRow"><label>ADS sensitivity</label><input type="range" id="sAds" min="0.4" max="1.6" step="0.1"><span class="sval" id="vAds"></span></div>
-  <div class="setRow"><label>Gyro sensitivity</label><input type="range" id="sGyro" min="0.3" max="2.5" step="0.1"><span class="sval" id="vGyro"></span></div>
-  <div class="setRow"><label>Volume</label><input type="range" id="sVol" min="0" max="1" step="0.05"><span class="sval" id="vVol"></span></div>
-  <div class="setRow"><label>Graphics</label><button class="menuBtn" id="sGfx" style="min-width:150px;padding:8px 20px;font-size:14px;">HIGH</button></div>
-  <button class="menuBtn" id="btnHudEdit">Edit HUD Layout</button>
-  <div id="setHudMsg" style="font-size:11px;color:#ff8f6b;letter-spacing:1px;"></div>
-  <button class="menuBtn primary" id="setBack">Done</button>
+<div class="overlay" id="settingsScreen" style="z-index:96;justify-content:flex-start;gap:0;padding:0;">
+  <div id="setHead">
+    <h2 style="margin:0;font-size:17px;letter-spacing:4px;">SETTINGS</h2>
+    <div style="flex:1"></div>
+    <button class="menuBtn" id="setDefaults" style="min-width:0;padding:7px 16px;font-size:11px;">DEFAULT</button>
+    <button class="menuBtn primary" id="setBack" style="min-width:0;padding:7px 18px;font-size:11px;">DONE</button>
+  </div>
+  <div id="setTabs">
+    <div class="setTab active" data-tab="audio">AUDIO</div>
+    <div class="setTab" data-tab="controls">CONTROLS</div>
+    <div class="setTab" data-tab="sens">SENSITIVITY</div>
+    <div class="setTab" data-tab="gfx">GRAPHICS</div>
+  </div>
+  <div id="setBody">
+    <div class="setPage active" data-page="audio">
+      <div class="mixRow" data-cat="master"><label>MASTER VOLUME</label><div class="mixCtl"><button class="muteBtn">🔊</button><div class="mixVal"></div><input type="range" min="0" max="100" step="1"></div></div>
+      <div class="mixRow" data-cat="sfx"><label>WEAPONS &amp; COMBAT</label><div class="mixCtl"><button class="muteBtn">🔊</button><div class="mixVal"></div><input type="range" min="0" max="100" step="1"></div></div>
+      <div class="mixRow" data-cat="move"><label>MOVEMENT</label><div class="mixCtl"><button class="muteBtn">🔊</button><div class="mixVal"></div><input type="range" min="0" max="100" step="1"></div></div>
+      <div class="mixRow" data-cat="ui"><label>INTERFACE</label><div class="mixCtl"><button class="muteBtn">🔊</button><div class="mixVal"></div><input type="range" min="0" max="100" step="1"></div></div>
+      <div class="mixRow" data-cat="amb"><label>LOBBY &amp; AMBIENCE</label><div class="mixCtl"><button class="muteBtn">🔊</button><div class="mixVal"></div><input type="range" min="0" max="100" step="1"></div></div>
+    </div>
+    <div class="setPage" data-page="controls">
+      <div class="mixRow"><label>VIBRATION</label><div class="mixCtl"><button class="menuBtn toggBtn" id="tVib">ON</button></div></div>
+      <div class="mixRow"><label>HUD LAYOUT</label><div class="mixCtl"><button class="menuBtn toggBtn" id="btnHudEdit">EDIT</button></div></div>
+      <div id="setHudMsg" style="font-size:11px;color:#ff8f6b;letter-spacing:1px;padding:6px 4px;"></div>
+    </div>
+    <div class="setPage" data-page="sens">
+      <div class="mixRow"><label>LOOK SENSITIVITY</label><div class="mixCtl"><span class="sval" id="vLook"></span><input type="range" id="sLook" min="0.4" max="2.2" step="0.1"></div></div>
+      <div class="mixRow"><label>ADS SENSITIVITY</label><div class="mixCtl"><span class="sval" id="vAds"></span><input type="range" id="sAds" min="0.4" max="1.6" step="0.1"></div></div>
+      <div class="mixRow"><label>GYRO SENSITIVITY</label><div class="mixCtl"><span class="sval" id="vGyro"></span><input type="range" id="sGyro" min="0.3" max="2.5" step="0.1"></div></div>
+    </div>
+    <div class="setPage" data-page="gfx">
+      <div class="mixRow"><label>GRAPHICS QUALITY</label><div class="mixCtl"><button class="menuBtn toggBtn" id="sGfx">HIGH</button></div></div>
+      <div class="mixRow"><label>FPS COUNTER</label><div class="mixCtl"><button class="menuBtn toggBtn" id="tFps">ON</button></div></div>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="deathOverlay">
@@ -637,7 +683,11 @@ const centerMsg=$('centerMsg'),centerMsgText=$('centerMsgText'),fpsCounter=$('fp
 let tokens=parseInt(localStorage.getItem('vx_tokens')||'0');
 let owned=JSON.parse(localStorage.getItem('vx_owned')||'["knife","pistol","carbine"]');
 function save(){localStorage.setItem('vx_tokens',tokens);localStorage.setItem('vx_owned',JSON.stringify(owned));}
-let S=JSON.parse(localStorage.getItem('vx_settings')||'null')||{look:1,ads:1,gyro:1,vol:1,gfx:'high'};
+let S=JSON.parse(localStorage.getItem('vx_settings')||'null')||{};
+S=Object.assign({look:1,ads:1,gyro:1,vol:1,gfx:'high',
+  volMaster:70,volSfx:100,volMove:100,volUi:100,volAmb:60,
+  mute:{},vib:true,showFps:true},S);
+S.mute=S.mute||{};
 S.diff=S.diff||'regular';
 const DIFFS={recruit:{react:0.6,acc:0.6,cd:1.5,label:'RECRUIT'},regular:{react:0.35,acc:1,cd:1,label:'REGULAR'},veteran:{react:0.15,acc:1.4,cd:0.7,label:'VETERAN'}};
 function DIFF(){return DIFFS[S.diff]||DIFFS.regular;}
@@ -1607,10 +1657,20 @@ const buzz=p=>{if(IS_TOUCH&&navigator.vibrate)try{navigator.vibrate(p);}catch(e)
 
 /* ================= audio ================= */
 const AC=window.AudioContext||window.webkitAudioContext;
-let actx=null,master=null,noiseBuf=null,lpFilter=null;
+let actx=null,master=null,noiseBuf=null,lpFilter=null,buses=null;
+function applyVol(){
+  if(!actx)return;
+  master.gain.value=0.9*(S.volMaster/100)*(S.mute.master?0:1);
+  buses.sfx.gain.value=(S.volSfx/100)*(S.mute.sfx?0:1);
+  buses.move.gain.value=(S.volMove/100)*(S.mute.move?0:1);
+  buses.ui.gain.value=(S.volUi/100)*(S.mute.ui?0:1);
+  buses.amb.gain.value=(S.volAmb/100)*(S.mute.amb?0:1);
+}
 function initAudio(){
   if(actx){if(actx.state==='suspended')actx.resume();return;}
-  actx=new AC();master=actx.createGain();master.gain.value=0.6*S.vol;
+  actx=new AC();master=actx.createGain();
+  buses={sfx:actx.createGain(),move:actx.createGain(),ui:actx.createGain(),amb:actx.createGain()};
+  for(const b in buses)buses[b].connect(master);
   lpFilter=actx.createBiquadFilter();lpFilter.type='lowpass';lpFilter.frequency.value=22050;
   master.connect(lpFilter);lpFilter.connect(actx.destination);
   const len=actx.sampleRate;noiseBuf=actx.createBuffer(1,len,actx.sampleRate);
@@ -1618,55 +1678,92 @@ function initAudio(){
   const w=actx.createBufferSource();w.buffer=noiseBuf;w.loop=true;
   const wf=actx.createBiquadFilter();wf.type='lowpass';wf.frequency.value=260;
   const wg=actx.createGain();wg.gain.value=0.045;
-  w.connect(wf);wf.connect(wg);wg.connect(master);w.start();
+  w.connect(wf);wf.connect(wg);wg.connect(buses.amb);w.start();
+  applyVol();
+  loadSfx();
 }
 function env(g,t0,a,peak,dec){g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(peak,t0+a);g.gain.exponentialRampToValueAtTime(0.001,t0+a+dec);}
-function noiseHit(vol,dur,freq,q,type='bandpass',rate=1){
+function noiseHit(vol,dur,freq,q,type='bandpass',rate=1,bus='sfx'){
   if(!actx)return;const t=actx.currentTime;
   const src=actx.createBufferSource();src.buffer=noiseBuf;src.playbackRate.value=rate;
   const f=actx.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;
   const g=actx.createGain();env(g,t,0.002,vol,dur);
-  src.connect(f);f.connect(g);g.connect(master);src.start(t);src.stop(t+dur+0.05);
+  src.connect(f);f.connect(g);g.connect(buses&&buses[bus]||master);src.start(t);src.stop(t+dur+0.05);
 }
-function tone(vol,dur,f0,f1,type='sine',delay=0){
+function tone(vol,dur,f0,f1,type='sine',delay=0,bus='sfx'){
   if(!actx)return;const t=actx.currentTime+delay;
   const o=actx.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);
   if(f1)o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+dur);
   const g=actx.createGain();env(g,t,0.004,vol,dur);
-  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.05);
+  o.connect(g);g.connect(buses&&buses[bus]||master);o.start(t);o.stop(t+dur+0.05);
 }
+/* ---- recorded-style sample engine (rendered pack in assets/sfx); synth remains as fallback ---- */
+const SFX_FILES={pistol:'shot_pistol',revolver:'shot_revolver',smg:'shot_smg',carbine:'shot_carbine',
+  pulse:'shot_pulse',shotgun:'shot_shotgun',sawed:'shot_sawed',dmr:'shot_dmr',sniper:'shot_sniper',
+  launcher:'shot_launcher',knife:'knife_swing',reload:'reload',empty:'empty',hit:'hit',headshot:'headshot',
+  explosion:'explosion',step1:'step1',step2:'step2',step3:'step3',step4:'step4',land:'land',
+  splash:'splash',swap:'swap',bounce:'bounce'};
+const sfxBuf={};let sfxLoaded=false;
+function loadSfx(){
+  if(sfxLoaded||!actx)return;sfxLoaded=true;
+  for(const k in SFX_FILES){
+    fetch('assets/sfx/'+SFX_FILES[k]+'.ogg')
+      .then(r=>r.ok?r.arrayBuffer():Promise.reject())
+      .then(ab=>actx.decodeAudioData(ab))
+      .then(b=>{sfxBuf[k]=b;})
+      .catch(()=>{}); // missing file -> synth fallback keeps working
+  }
+}
+function playBuf(k,vol=1,rate=1,bus='sfx'){
+  const b=sfxBuf[k];if(!b||!actx)return false;
+  const s=actx.createBufferSource();s.buffer=b;s.playbackRate.value=rate;
+  const g=actx.createGain();g.gain.value=vol;
+  s.connect(g);g.connect(buses&&buses[bus]||master);s.start();
+  return true;
+}
+const SHOT_VOL={pistol:0.72,revolver:0.9,smg:0.58,carbine:0.78,pulse:0.68,shotgun:0.95,sawed:1.0,dmr:0.85,sniper:1.0,launcher:0.9,knife:0.6};
 const sfx={
   shot(k){
+    if(playBuf(k,SHOT_VOL[k]||0.8,0.94+Math.random()*0.12))return;
     k=({smg:'carbine',pulse:'carbine',dmr:'sniper',revolver:'pistol',sawed:'shotgun',launcher:'shotgun'})[k]||k;
     if(k==='pistol'){noiseHit(0.4,0.06,3200,0.8,'bandpass',1.6);tone(0.25,0.05,220,80,'triangle');}
     else if(k==='shotgun'){noiseHit(0.6,0.16,900,0.5,'bandpass',0.7);tone(0.45,0.14,110,40,'triangle');}
     else if(k==='sniper'){noiseHit(0.6,0.2,1600,0.4,'bandpass',1.1);tone(0.4,0.22,140,35,'sawtooth');}
     else{noiseHit(0.5,0.09,2400,0.7,'bandpass',1.4);tone(0.35,0.08,160,50,'triangle');}
   },
-  knife(){noiseHit(0.25,0.10,2400,2,'highpass',1.8);},
-  enemyShot(dist){const v=Math.max(0.04,0.35*(1-dist/70));noiseHit(v,0.12,900,1,'bandpass',0.8);},
-  hit(){tone(0.30,0.05,1800,1200,'square');},
-  kill(){tone(0.32,0.10,660,880,'square');tone(0.32,0.14,880,1320,'square',0.09);},
-  headshot(){tone(0.35,0.08,880,1760,'square');tone(0.35,0.12,1320,1980,'square',0.07);},
-  reload(t){noiseHit(0.25,0.03,3000,4,'highpass');setTimeout(()=>noiseHit(0.3,0.04,1400,3,'bandpass'),t*420);setTimeout(()=>noiseHit(0.35,0.05,2200,3,'bandpass'),t*860);},
-  dry(){noiseHit(0.2,0.03,3500,5,'highpass');},
-  swap(){noiseHit(0.2,0.05,1800,3,'bandpass');},
-  step(sprint,surf){
-    if(surf==='hard')noiseHit(sprint?0.13:0.1,0.04,900,2,'bandpass',1.1);
-    else if(surf==='splash')noiseHit(0.17,0.1,480,0.7,'lowpass',0.45);
-    else if(surf==='sand')noiseHit(sprint?0.1:0.07,0.07,240,0.9,'lowpass',0.5);
-    else noiseHit(sprint?0.14:0.09,0.05,300+Math.random()*150,1,'lowpass',0.6);
+  knife(){if(playBuf('knife',0.6,0.92+Math.random()*0.16))return;noiseHit(0.25,0.10,2400,2,'highpass',1.8);},
+  enemyShot(dist){
+    const v=Math.max(0.04,0.4*(1-dist/70));
+    if(playBuf('carbine',v,0.88+Math.random()*0.2))return;
+    noiseHit(v,0.12,900,1,'bandpass',0.8);
   },
-  slide(){noiseHit(0.3,0.35,600,0.8,'lowpass',0.5);},
-  jump(){noiseHit(0.12,0.08,500,1,'lowpass');},
-  land(){tone(0.2,0.09,120,60,'triangle');},
+  hit(){if(playBuf('hit',0.9,0.97+Math.random()*0.06))return;tone(0.30,0.05,1800,1200,'square');},
+  kill(){tone(0.32,0.10,660,880,'square');tone(0.32,0.14,880,1320,'square',0.09);},
+  headshot(){if(playBuf('headshot',0.85))return;tone(0.35,0.08,880,1760,'square');tone(0.35,0.12,1320,1980,'square',0.07);},
+  reload(t){
+    if(sfxBuf.reload){playBuf('reload',0.85);setTimeout(()=>playBuf('swap',0.65),t*840);return;}
+    noiseHit(0.25,0.03,3000,4,'highpass');setTimeout(()=>noiseHit(0.3,0.04,1400,3,'bandpass'),t*420);setTimeout(()=>noiseHit(0.35,0.05,2200,3,'bandpass'),t*860);
+  },
+  dry(){if(playBuf('empty',0.8))return;noiseHit(0.2,0.03,3500,5,'highpass');},
+  swap(){if(playBuf('swap',0.7,0.95+Math.random()*0.1))return;noiseHit(0.2,0.05,1800,3,'bandpass');},
+  step(sprint,surf){
+    if(surf==='splash'){if(playBuf('splash',0.45,0.9+Math.random()*0.25,'move'))return;}
+    else if(playBuf('step'+(1+Math.floor(Math.random()*4)),sprint?0.5:0.35,0.88+Math.random()*0.28,'move'))return;
+    if(surf==='hard')noiseHit(sprint?0.13:0.1,0.04,900,2,'bandpass',1.1,'move');
+    else if(surf==='splash')noiseHit(0.17,0.1,480,0.7,'lowpass',0.45,'move');
+    else if(surf==='sand')noiseHit(sprint?0.1:0.07,0.07,240,0.9,'lowpass',0.5,'move');
+    else noiseHit(sprint?0.14:0.09,0.05,300+Math.random()*150,1,'lowpass',0.6,'move');
+  },
+  slide(){noiseHit(0.3,0.35,600,0.8,'lowpass',0.5,'move');},
+  jump(){noiseHit(0.12,0.08,500,1,'lowpass',1,'move');},
+  land(){if(playBuf('land',0.75,0.95+Math.random()*0.1,'move'))return;tone(0.2,0.09,120,60,'triangle',0,'move');},
   damage(){tone(0.4,0.16,220,70,'sawtooth');noiseHit(0.2,0.1,500,1,'lowpass');},
   pickup(){tone(0.28,0.09,520,1040,'sine');tone(0.28,0.1,780,1560,'sine',0.07);},
   death(){tone(0.4,0.5,300,60,'sawtooth');},
   pin(){noiseHit(0.25,0.04,2600,4,'highpass');},
-  boom(){tone(0.6,0.5,90,28,'sawtooth');noiseHit(0.55,0.4,300,0.4,'lowpass',0.4);},
-  buy(){tone(0.3,0.1,660,990,'sine');tone(0.3,0.12,990,1320,'sine',0.08);},
-  matchEnd(){tone(0.35,0.18,523,659,'square');tone(0.35,0.18,659,784,'square',0.15);tone(0.4,0.3,784,1046,'square',0.3);},
+  boom(){if(playBuf('explosion',1.0,0.94+Math.random()*0.12))return;tone(0.6,0.5,90,28,'sawtooth');noiseHit(0.55,0.4,300,0.4,'lowpass',0.4);},
+  buy(){tone(0.3,0.1,660,990,'sine',0,'ui');tone(0.3,0.12,990,1320,'sine',0.08,'ui');},
+  matchEnd(){tone(0.35,0.18,523,659,'square',0,'ui');tone(0.35,0.18,659,784,'square',0.15,'ui');tone(0.4,0.3,784,1046,'square',0.3,'ui');},
 };
 
 /* ================= input ================= */
@@ -2375,7 +2472,7 @@ function updateNades(dt){
     if(n.m.position.y<gy){
       n.m.position.y=gy;
       if(n.impact){n.fuse=0;}
-      else{if(n.vel.y<0)n.vel.y*=-0.35;n.vel.x*=0.7;n.vel.z*=0.7;}
+      else{if(n.vel.y<0){if(n.vel.y<-2)playBuf('bounce',0.35,0.9+Math.random()*0.2);n.vel.y*=-0.35;}n.vel.x*=0.7;n.vel.z*=0.7;}
     }
     if(n.impact&&n.fuse<2.5&&n.fuse>0){
       const p2=n.m.position;
@@ -3214,7 +3311,7 @@ function seasonRollover(){
   const tst=$('loginToast');
   tst.textContent='SEASON '+profile.season+' — '+seasonName(profile.season)+' BEGINS';
   tst.classList.remove('show');void tst.offsetWidth;tst.classList.add('show');
-  if(actx){tone(0.3,0.12,523,784,'square');tone(0.3,0.18,784,1175,'square',0.15);}
+  if(actx){tone(0.3,0.12,523,784,'square',0,'ui');tone(0.3,0.18,784,1175,'square',0.15,'ui');}
 }
 const ACH_DEFS=[
   {id:'WARLORD',   desc:'Eliminate 100 players online',      c:st=>st.mpKills>=100,   p:st=>st.mpKills+'/100'},
@@ -3232,7 +3329,7 @@ function grantTitle(id){
   saveProfile();
   showCenterMsg('TITLE UNLOCKED — '+id);
   addKillEntry('Title unlocked: '+id);
-  tone(0.3,0.15,659,988,'square');buzz([30,50,30]);
+  tone(0.3,0.15,659,988,'square',0,'ui');buzz([30,50,30]);
 }
 function checkAchievements(){
   for(const a of ACH_DEFS)if(!a.manual&&!profile.titles.owned.includes(a.id)&&a.c(profile.stats))grantTitle(a.id);
@@ -3716,7 +3813,7 @@ function endHudEdit(){
 
 /* ================= settings ================= */
 function applySettings(){
-  if(master)master.gain.value=0.6*S.vol;
+  applyVol();
   const low=S.gfx==='low';           // LOW: no bloom, no shadows, reduced res
   sun.castShadow=!low;               // MEDIUM: shadows, no bloom
   renderer.shadowMap.enabled=!low;   // HIGH: shadows + bloom
@@ -3730,10 +3827,41 @@ function applySettings(){
     const el=$(id);el.value=S[key];$(vid).textContent=fmt(S[key]);
     el.addEventListener('input',()=>{S[key]=parseFloat(el.value);$(vid).textContent=fmt(S[key]);saveS();applySettings();});
   };
+  const setPaints=[];
   bind('sLook','vLook','look',v=>v.toFixed(1)+'x');
   bind('sAds','vAds','ads',v=>v.toFixed(1)+'x');
   bind('sGyro','vGyro','gyro',v=>v.toFixed(1)+'x');
-  bind('sVol','vVol','vol',v=>Math.round(v*100)+'%');
+  const MIXK={master:'volMaster',sfx:'volSfx',move:'volMove',ui:'volUi',amb:'volAmb'};
+  document.querySelectorAll('.mixRow[data-cat]').forEach(row=>{
+    const cat=row.dataset.cat,key=MIXK[cat];
+    const mb=row.querySelector('.muteBtn'),val=row.querySelector('.mixVal'),rg=row.querySelector('input');
+    const paint=()=>{rg.value=S[key];val.textContent=S[key];mb.textContent=S.mute[cat]?'🔇':'🔊';mb.classList.toggle('muted',!!S.mute[cat]);};
+    setPaints.push(paint);
+    rg.addEventListener('input',()=>{S[key]=parseInt(rg.value);S.mute[cat]=false;paint();saveS();initAudio();applyVol();});
+    mb.addEventListener('click',()=>{S.mute[cat]=!S.mute[cat];paint();saveS();initAudio();applyVol();});
+    paint();
+  });
+  document.querySelectorAll('.setTab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.setTab').forEach(x=>x.classList.toggle('active',x===t));
+    document.querySelectorAll('.setPage').forEach(p=>p.classList.toggle('active',p.dataset.page===t.dataset.tab));
+  }));
+  const togg=(id,key,apply)=>{
+    const b=$(id);
+    const paint=()=>{b.textContent=S[key]!==false?'ON':'OFF';b.classList.toggle('off',S[key]===false);};
+    setPaints.push(paint);
+    b.addEventListener('click',()=>{S[key]=S[key]===false;paint();saveS();apply&&apply();});
+    paint();
+  };
+  togg('tVib','vib');
+  togg('tFps','showFps',()=>{fpsCounter.style.display=S.showFps===false?'none':'';});
+  fpsCounter.style.display=S.showFps===false?'none':'';
+  $('setDefaults').addEventListener('click',()=>{
+    Object.assign(S,{look:1,ads:1,gyro:1,gfx:'high',volMaster:70,volSfx:100,volMove:100,volUi:100,volAmb:60,mute:{},vib:true,showFps:true});
+    saveS();applySettings();applyVol();
+    $('sLook').value=1;$('vLook').textContent='1.0x';$('sAds').value=1;$('vAds').textContent='1.0x';$('sGyro').value=1;$('vGyro').textContent='1.0x';
+    fpsCounter.style.display='';
+    setPaints.forEach(p=>p());
+  });
   $('sGfx').addEventListener('click',()=>{
     S.gfx=S.gfx==='high'?'medium':S.gfx==='medium'?'low':'high';
     saveS();applySettings();
