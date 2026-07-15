@@ -1675,12 +1675,9 @@ function initAudio(){
   master.connect(lpFilter);lpFilter.connect(actx.destination);
   const len=actx.sampleRate;noiseBuf=actx.createBuffer(1,len,actx.sampleRate);
   const d=noiseBuf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
-  const w=actx.createBufferSource();w.buffer=noiseBuf;w.loop=true;
-  const wf=actx.createBiquadFilter();wf.type='lowpass';wf.frequency.value=260;
-  const wg=actx.createGain();wg.gain.value=0.045;
-  w.connect(wf);wf.connect(wg);wg.connect(buses.amb);w.start();
   applyVol();
   loadSfx();
+  playAmb('lobby');
 }
 function env(g,t0,a,peak,dec){g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(peak,t0+a);g.gain.exponentialRampToValueAtTime(0.001,t0+a+dec);}
 function noiseHit(vol,dur,freq,q,type='bandpass',rate=1,bus='sfx'){
@@ -1702,15 +1699,38 @@ const SFX_FILES={pistol:'shot_pistol',revolver:'shot_revolver',smg:'shot_smg',ca
   pulse:'shot_pulse',shotgun:'shot_shotgun',sawed:'shot_sawed',dmr:'shot_dmr',sniper:'shot_sniper',
   launcher:'shot_launcher',knife:'knife_swing',reload:'reload',empty:'empty',hit:'hit',headshot:'headshot',
   explosion:'explosion',step1:'step1',step2:'step2',step3:'step3',step4:'step4',land:'land',
-  splash:'splash',swap:'swap',bounce:'bounce'};
+  splash:'splash',swap:'swap',bounce:'bounce',slide:'slide',jump:'jump',
+  amb_lobby:'lobby_loop',amb_field:'amb_field'};
 const sfxBuf={};let sfxLoaded=false;
+/* ambient bed controller: seamless loops, crossfaded scene changes */
+const amb={kind:null,node:null,gain:null};
+const AMB_VOL={lobby:0.55,field:0.4};
+function playAmb(kind){
+  if(amb.kind===kind&&amb.node)return;
+  amb.kind=kind;
+  if(amb.node){
+    const old=amb.node,og=amb.gain;
+    og.gain.setTargetAtTime(0,actx.currentTime,0.35);
+    setTimeout(()=>{try{old.stop();}catch(e){}},1400);
+    amb.node=null;amb.gain=null;
+  }
+  if(!kind||!actx||!sfxBuf['amb_'+kind]&&!sfxBuf[kind])return;
+  const b=sfxBuf['amb_'+kind]||sfxBuf[kind];
+  const s=actx.createBufferSource();s.buffer=b;s.loop=true;
+  const g=actx.createGain();g.gain.value=0;
+  s.connect(g);g.connect(buses.amb);s.start();
+  g.gain.setTargetAtTime(AMB_VOL[kind]||0.4,actx.currentTime,0.6);
+  amb.node=s;amb.gain=g;
+}
 function loadSfx(){
   if(sfxLoaded||!actx)return;sfxLoaded=true;
   for(const k in SFX_FILES){
     fetch('assets/sfx/'+SFX_FILES[k]+'.ogg')
       .then(r=>r.ok?r.arrayBuffer():Promise.reject())
       .then(ab=>actx.decodeAudioData(ab))
-      .then(b=>{sfxBuf[k]=b;})
+      .then(b=>{sfxBuf[k]=b;
+        if(amb.kind&&!amb.node&&(k==='amb_'+amb.kind||k===amb.kind)){const want=amb.kind;amb.kind=null;playAmb(want);}
+      })
       .catch(()=>{}); // missing file -> synth fallback keeps working
   }
 }
@@ -1747,16 +1767,16 @@ const sfx={
   dry(){if(playBuf('empty',0.8))return;noiseHit(0.2,0.03,3500,5,'highpass');},
   swap(){if(playBuf('swap',0.7,0.95+Math.random()*0.1))return;noiseHit(0.2,0.05,1800,3,'bandpass');},
   step(sprint,surf){
-    if(surf==='splash'){if(playBuf('splash',0.45,0.9+Math.random()*0.25,'move'))return;}
-    else if(playBuf('step'+(1+Math.floor(Math.random()*4)),sprint?0.5:0.35,0.88+Math.random()*0.28,'move'))return;
+    if(surf==='splash'){if(playBuf('splash',0.55,0.9+Math.random()*0.25,'move'))return;}
+    else if(playBuf('step'+(1+Math.floor(Math.random()*4)),sprint?0.75:0.5,0.9+Math.random()*0.22,'move'))return;
     if(surf==='hard')noiseHit(sprint?0.13:0.1,0.04,900,2,'bandpass',1.1,'move');
     else if(surf==='splash')noiseHit(0.17,0.1,480,0.7,'lowpass',0.45,'move');
     else if(surf==='sand')noiseHit(sprint?0.1:0.07,0.07,240,0.9,'lowpass',0.5,'move');
     else noiseHit(sprint?0.14:0.09,0.05,300+Math.random()*150,1,'lowpass',0.6,'move');
   },
-  slide(){noiseHit(0.3,0.35,600,0.8,'lowpass',0.5,'move');},
-  jump(){noiseHit(0.12,0.08,500,1,'lowpass',1,'move');},
-  land(){if(playBuf('land',0.75,0.95+Math.random()*0.1,'move'))return;tone(0.2,0.09,120,60,'triangle',0,'move');},
+  slide(){if(playBuf('slide',0.65,0.92+Math.random()*0.16,'move'))return;noiseHit(0.3,0.35,600,0.8,'lowpass',0.5,'move');},
+  jump(){if(playBuf('jump',0.35,0.9+Math.random()*0.2,'move'))return;noiseHit(0.12,0.08,500,1,'lowpass',1,'move');},
+  land(){if(playBuf('land',0.85,0.95+Math.random()*0.1,'move'))return;tone(0.2,0.09,120,60,'triangle',0,'move');},
   damage(){tone(0.4,0.16,220,70,'sawtooth');noiseHit(0.2,0.1,500,1,'lowpass');},
   pickup(){tone(0.28,0.09,520,1040,'sine');tone(0.28,0.1,780,1560,'sine',0.07);},
   death(){tone(0.4,0.5,300,60,'sawtooth');},
@@ -3901,6 +3921,7 @@ function spawnWave(){
   }
 }
 function startMatch(){
+  playAmb('field');
   buildWorld(game.mapSel);
   if(lobbyAv){lobbyAv.g.visible=false;lobbyAv.pad.visible=false;for(const l of lobbyAv.lights)l.visible=false;}
   loadScreen.classList.remove('active');
@@ -4070,6 +4091,7 @@ function cleanupMatch(){
   camera.fov=75;camera.updateProjectionMatrix();
 }
 function quitToLobby(){
+  playAmb('lobby');
   if(IS_TOUCH&&window.joyShow)window.joyShow(false);
   mpDisconnect();
   cleanupMatch();
