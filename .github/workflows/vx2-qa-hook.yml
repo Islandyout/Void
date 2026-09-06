@@ -19,26 +19,16 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import base64
           p = Path('src/vertical-slice/greenfield-v3.js')
           s = p.read_text()
           anchor = "const bots=Array.from({length:6},(_,i)=>makeBot(i));\n"
-          bridge = r'''if(new URLSearchParams(location.search).has('qa')){
-  window.__VX2_QA__={
-    teleportPlayer(x,y,z,yaw=0,pitch=0){player.pos.set(x,y,z);player.vel.set(0,0,0);player.yaw=yaw;player.pitch=pitch;player.grounded=true;player.eye=1.72;player.crouched=false;player.slideT=0;player.mantleT=0;input.fire=false;input.firePressed=false;input.ads=false;input.crouchHold=false;input.crouchToggle=false;input.crouchPressed=false;ads=0;feel.cancelActions();},
-    teleportBot(index,x,y,z){const b=bots[index];if(!b)return false;b.pos.set(x,y,z);b.group.position.copy(b.pos);b.alive=true;b.group.visible=true;b.hp=Math.max(1,b.hp);b.grounded=true;b.decisionT=0;b.cover=null;b.route=null;b.memoryT=0;return true;},
-    setBotHealth(index,hp){const b=bots[index];if(!b)return false;b.hp=hp;b.decisionT=0;return true;},
-    playerState(){return {x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,hp:player.hp,grounded:player.grounded,crouched:player.crouched,slideT:player.slideT,mantleT:player.mantleT,stance:$('stance').textContent};},
-    botStates(){return bots.map(b=>({id:b.id,x:b.pos.x,y:b.pos.y,z:b.pos.z,hp:b.hp,alive:b.alive,state:b.state,cover:b.cover?{x:b.cover.x,y:b.cover.y,z:b.cover.z}:null,route:b.route?{x:b.route.x,y:b.route.y,z:b.route.z}:null,memoryT:b.memoryT}));},
-    coverCandidate(index){const b=bots[index];if(!b)return null;const n=chooseCoverNode(b.pos,player.pos,coverNodes,{isHidden:(node,p)=>!lineOfSight(node.clone().setY(1.2),p.clone().setY(1.5)),isReachable:pathReachable,occupied:node=>coverOccupied(node,b)});return n?{x:n.x,y:n.y,z:n.z}:null;},
-    coverNodes(){return coverNodes.map(n=>({x:n.x,y:n.y,z:n.z}));},
-    navNodes(){return navNodes.map(n=>({x:n.x,y:n.y,z:n.z}));}
-  };
-}
-'''
+          encoded = "aWYobmV3IFVSTFNlYXJjaFBhcmFtcyhsb2NhdGlvbi5zZWFyY2gpLmhhcygncWEnKSl7CiAgd2luZG93Ll9fVlgyX1FBX189ewogICAgdGVsZXBvcnRQbGF5ZXIoeCx5LHoseWF3PTAscGl0Y2g9MCl7cGxheWVyLnBvcy5zZXQoeCx5LHopO3BsYXllci52ZWwuc2V0KDAsMCwwKTtwbGF5ZXIueWF3PXlhdztwbGF5ZXIucGl0Y2g9cGl0Y2g7cGxheWVyLmhwPTEwMDtwbGF5ZXIuYWxpdmU9dHJ1ZTtwbGF5ZXIuZ3JvdW5kZWQ9dHJ1ZTtwbGF5ZXIuZXllPTEuNzI7cGxheWVyLmNyb3VjaGVkPWZhbHNlO3BsYXllci5zbGlkZVQ9MDtwbGF5ZXIubWFudGxlVD0wO3N3aXRjaFQ9MDtyZWxvYWRpbmc9ZmFsc2U7cmVsb2FkVD0wO2Nvb2xkb3duPTA7aW5wdXQuZmlyZT1mYWxzZTtpbnB1dC5maXJlUHJlc3NlZD1mYWxzZTtpbnB1dC5hZHM9ZmFsc2U7aW5wdXQuY3JvdWNoSG9sZD1mYWxzZTtpbnB1dC5jcm91Y2hUb2dnbGU9ZmFsc2U7aW5wdXQuY3JvdWNoUHJlc3NlZD1mYWxzZTthZHM9MDtmZWVsLmNhbmNlbEFjdGlvbnMoKTtkZWF0aC5jbGFzc0xpc3QuYWRkKCdoaWRkZW4nKTt1cGRhdGVIdWQoKTt9LAogICAgcGFya0JvdHMoKXtmb3IoY29uc3QgYiBvZiBib3RzKXtiLmFsaXZlPWZhbHNlO2IucmVzcGF3bj05OTk7Yi5ncm91cC52aXNpYmxlPWZhbHNlO2IuY292ZXI9bnVsbDtiLnJvdXRlPW51bGw7Yi5tZW1vcnlUPTA7Yi5kZWNpc2lvblQ9OTk5O319LAogICAgYWN0aXZhdGVCb3QoaW5kZXgseCx5LHosaHA9MTAwKXtjb25zdCBiPWJvdHNbaW5kZXhdO2lmKCFiKXJldHVybiBmYWxzZTtiLnBvcy5zZXQoeCx5LHopO2IuZ3JvdXAucG9zaXRpb24uY29weShiLnBvcyk7Yi5hbGl2ZT10cnVlO2IuZ3JvdXAudmlzaWJsZT10cnVlO2IuaHA9aHA7Yi5ncm91bmRlZD10cnVlO2IucmVzcGF3bj0wO2Iuc2hvb3RDZD0uODtiLmRlY2lzaW9uVD0wO2IucGVla1Q9MDtiLnBlZWtPdXQ9ZmFsc2U7Yi5jb3Zlcj1udWxsO2Iucm91dGU9bnVsbDtiLm1lbW9yeVQ9MDtiLmxhc3RTZWVuLnNldCgwLDAsMCk7cmV0dXJuIHRydWU7fSwKICAgIHNldEJvdEhlYWx0aChpbmRleCxocCl7Y29uc3QgYj1ib3RzW2luZGV4XTtpZighYilyZXR1cm4gZmFsc2U7Yi5ocD1ocDtiLmRlY2lzaW9uVD0wO3JldHVybiB0cnVlO30sCiAgICBwbGF5ZXJTdGF0ZSgpe3JldHVybiB7eDpwbGF5ZXIucG9zLngseTpwbGF5ZXIucG9zLnksejpwbGF5ZXIucG9zLnoseWF3OnBsYXllci55YXcscGl0Y2g6cGxheWVyLnBpdGNoLGhwOnBsYXllci5ocCxncm91bmRlZDpwbGF5ZXIuZ3JvdW5kZWQsY3JvdWNoZWQ6cGxheWVyLmNyb3VjaGVkLHNsaWRlVDpwbGF5ZXIuc2xpZGVULG1hbnRsZVQ6cGxheWVyLm1hbnRsZVQsc3RhbmNlOiQoJ3N0YW5jZScpLnRleHRDb250ZW50fTt9LAogICAgYm90U3RhdGVzKCl7cmV0dXJuIGJvdHMubWFwKGI9Pih7aWQ6Yi5pZCx4OmIucG9zLngseTpiLnBvcy55LHo6Yi5wb3MueixocDpiLmhwLGFsaXZlOmIuYWxpdmUsc3RhdGU6Yi5zdGF0ZSxjb3ZlcjpiLmNvdmVyP3t4OmIuY292ZXIueCx5OmIuY292ZXIueSx6OmIuY292ZXIuen06bnVsbCxyb3V0ZTpiLnJvdXRlP3t4OmIucm91dGUueCx5OmIucm91dGUueSx6OmIucm91dGUuen06bnVsbCxtZW1vcnlUOmIubWVtb3J5VH0pKTt9LAogICAgY292ZXJDYW5kaWRhdGUoaW5kZXgpe2NvbnN0IGI9Ym90c1tpbmRleF07aWYoIWIpcmV0dXJuIG51bGw7Y29uc3Qgbj1jaG9vc2VDb3Zlck5vZGUoYi5wb3MscGxheWVyLnBvcyxjb3Zlck5vZGVzLHtpc0hpZGRlbjoobm9kZSxwKT0+IWxpbmVPZlNpZ2h0KG5vZGUuY2xvbmUoKS5zZXRZKG5vZGUueSsxLjQ1KSxwLmNsb25lKCkuc2V0WShwLnkrMS40NSkpLGlzUmVhY2hhYmxlOnBhdGhSZWFjaGFibGUsb2NjdXBpZWQ6bm9kZT0+Y292ZXJPY2N1cGllZChub2RlLGIpfSk7cmV0dXJuIG4/e3g6bi54LHk6bi55LHo6bi56fTpudWxsO30sCiAgICBjb3Zlck5vZGVzKCl7cmV0dXJuIGNvdmVyTm9kZXMubWFwKG49Pih7eDpuLngseTpuLnksejpuLnp9KSk7fSwKICAgIG5hdk5vZGVzKCl7cmV0dXJuIG5hdk5vZGVzLm1hcChuPT4oe3g6bi54LHk6bi55LHo6bi56fSkpO30KICB9Owp9Cg=="
+          bridge = base64.b64decode(encoded).decode()
           if 'window.__VX2_QA__' not in s:
-              if anchor not in s: raise SystemExit('bot anchor not found')
-              s = s.replace(anchor, anchor + bridge, 1)
-              p.write_text(s)
+              if anchor not in s:
+                  raise SystemExit('bot anchor not found')
+              p.write_text(s.replace(anchor, anchor + bridge, 1))
 
       - name: Commit QA bridge if needed
         run: |
