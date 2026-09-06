@@ -9,9 +9,10 @@
 <body>
   <div id="app">
     <canvas id="game"></canvas>
-    <div id="damage"></div><div id="hitflash"></div>
+    <div id="damage"></div><div id="hitflash"></div><div id="damageDir"><i></i></div>
     <div id="hud" class="hidden">
-      <div id="build">VX2 // GREENFIELD<br>COMBAT SLICE 02</div>
+      <div id="build">VX2 // GREENFIELD<br>COMBAT SLICE 03</div>
+      <div id="stance">READY</div>
       <div class="top">
         <div class="chip"><strong id="kills">0</strong><span>KILLS</span></div>
         <div class="chip"><strong id="timer">5:00</strong><span>TIME</span></div>
@@ -27,19 +28,20 @@
       <div id="lookPad"></div><div id="movePad"><div id="moveKnob"></div></div>
       <div class="touchBtn" id="fireBtn">FIRE</div><div class="touchBtn" id="adsBtn">ADS</div>
       <div class="touchBtn" id="reloadBtn">RLD</div><div class="touchBtn" id="swapBtn">WPN</div>
+      <div class="touchBtn" id="jumpBtn">JUMP</div><div class="touchBtn" id="crouchBtn">SLIDE</div>
     </div>
     <div id="start">
       <div class="panel">
-        <div class="kicker">VOXSTRIKE 2.0 // VERTICAL SLICE</div>
+        <div class="kicker">VOXSTRIKE 2.0 // VERTICAL SLICE 03</div>
         <div class="title">GREEN<span>FIELD</span></div>
-        <p class="copy">A focused Deathmatch rebuild for the new gameplay foundation. Weapon data, recoil, camera feel and the match runtime are now modular instead of being hard-coded into the original 221 KB game file.</p>
-        <div class="controls"><div><b>WASD</b> MOVE · <b>SHIFT</b> SPRINT</div><div><b>MOUSE</b> AIM · <b>RMB</b> ADS</div><div><b>LMB</b> FIRE · <b>R</b> RELOAD</div><div><b>1–3</b> SWITCH · <b>SPACE</b> JUMP</div></div>
+        <p class="copy">Greenfield now tests the deeper combat foundation: authored interiors and vertical routes, tactical bots, traversal, weapon action animation, shell ejection and directional damage feedback.</p>
+        <div class="controls"><div><b>WASD</b> MOVE · <b>SHIFT</b> SPRINT</div><div><b>MOUSE</b> AIM · <b>RMB</b> ADS</div><div><b>LMB</b> FIRE · <b>R</b> RELOAD</div><div><b>1–3</b> SWITCH · <b>SPACE</b> JUMP/MANTLE</div><div><b>C / CTRL</b> CROUCH · SPRINT+C SLIDE</div><div><b>ROUTES</b> WAREHOUSE · TOWER · CATWALK</div></div>
         <button id="deploy">DEPLOY</button>
       </div>
     </div>
     <div id="death" class="hidden"><div class="panel"><h2>ELIMINATED</h2><p class="deathStat">Regroup and redeploy into Greenfield.</p><button id="respawn">REDEPLOY</button></div></div>
     <div id="end" class="hidden"><div class="panel"><div class="kicker">MATCH COMPLETE</div><h2 id="endTitle">GREENFIELD</h2><p class="deathStat" id="endStats"></p><button id="again">PLAY AGAIN</button></div></div>
   </div>
-  <script type="module" src="./src/vertical-slice/greenfield.js"></script>
+  <script type="module" src="./src/vertical-slice/greenfield-v3.js"></script>
 </body>
 </html>
