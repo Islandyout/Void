@@ -1,0 +1,53 @@
+name: Add VX2 QA debug bridge
+
+on:
+  push:
+    branches:
+      - dev/voxstrike-2.0
+
+permissions:
+  contents: write
+
+jobs:
+  patch-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add query-gated QA bridge
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('src/vertical-slice/greenfield-v3.js')
+          s = p.read_text()
+          anchor = "const bots=Array.from({length:6},(_,i)=>makeBot(i));\n"
+          bridge = r'''if(new URLSearchParams(location.search).has('qa')){
+  window.__VX2_QA__={
+    teleportPlayer(x,y,z,yaw=0,pitch=0){player.pos.set(x,y,z);player.vel.set(0,0,0);player.yaw=yaw;player.pitch=pitch;player.grounded=true;player.eye=1.72;player.crouched=false;player.slideT=0;player.mantleT=0;input.fire=false;input.firePressed=false;input.ads=false;input.crouchHold=false;input.crouchToggle=false;input.crouchPressed=false;ads=0;feel.cancelActions();},
+    teleportBot(index,x,y,z){const b=bots[index];if(!b)return false;b.pos.set(x,y,z);b.group.position.copy(b.pos);b.alive=true;b.group.visible=true;b.hp=Math.max(1,b.hp);b.grounded=true;b.decisionT=0;b.cover=null;b.route=null;b.memoryT=0;return true;},
+    setBotHealth(index,hp){const b=bots[index];if(!b)return false;b.hp=hp;b.decisionT=0;return true;},
+    playerState(){return {x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,hp:player.hp,grounded:player.grounded,crouched:player.crouched,slideT:player.slideT,mantleT:player.mantleT,stance:$('stance').textContent};},
+    botStates(){return bots.map(b=>({id:b.id,x:b.pos.x,y:b.pos.y,z:b.pos.z,hp:b.hp,alive:b.alive,state:b.state,cover:b.cover?{x:b.cover.x,y:b.cover.y,z:b.cover.z}:null,route:b.route?{x:b.route.x,y:b.route.y,z:b.route.z}:null,memoryT:b.memoryT}));},
+    coverCandidate(index){const b=bots[index];if(!b)return null;const n=chooseCoverNode(b.pos,player.pos,coverNodes,{isHidden:(node,p)=>!lineOfSight(node.clone().setY(1.2),p.clone().setY(1.5)),isReachable:pathReachable,occupied:node=>coverOccupied(node,b)});return n?{x:n.x,y:n.y,z:n.z}:null;},
+    coverNodes(){return coverNodes.map(n=>({x:n.x,y:n.y,z:n.z}));},
+    navNodes(){return navNodes.map(n=>({x:n.x,y:n.y,z:n.z}));}
+  };
+}
+'''
+          if 'window.__VX2_QA__' not in s:
+              if anchor not in s: raise SystemExit('bot anchor not found')
+              s = s.replace(anchor, anchor + bridge, 1)
+              p.write_text(s)
+
+      - name: Commit QA bridge if needed
+        run: |
+          if git diff --quiet -- src/vertical-slice/greenfield-v3.js; then
+            echo "QA bridge already present."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/vertical-slice/greenfield-v3.js
+          git commit -m "test(vx2): expose query-gated gameplay QA bridge"
+          git push
