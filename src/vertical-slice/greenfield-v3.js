@@ -149,6 +149,19 @@ function makeBot(i){
   group.position.copy(bot.pos);for(const [mesh,part] of [[body,'body'],[head,'head'],[legs,'legs']]){mesh.userData.bot=bot;mesh.userData.part=part;botHitMeshes.push(mesh);}return bot;
 }
 const bots=Array.from({length:6},(_,i)=>makeBot(i));
+if(new URLSearchParams(location.search).has('qa')){
+  window.__VX2_QA__={
+    teleportPlayer(x,y,z,yaw=0,pitch=0){player.pos.set(x,y,z);player.vel.set(0,0,0);player.yaw=yaw;player.pitch=pitch;player.hp=100;player.alive=true;player.grounded=true;player.eye=1.72;player.crouched=false;player.slideT=0;player.mantleT=0;switchT=0;reloading=false;reloadT=0;cooldown=0;input.fire=false;input.firePressed=false;input.ads=false;input.crouchHold=false;input.crouchToggle=false;input.crouchPressed=false;ads=0;feel.cancelActions();death.classList.add('hidden');updateHud();},
+    parkBots(){for(const b of bots){b.alive=false;b.respawn=999;b.group.visible=false;b.cover=null;b.route=null;b.memoryT=0;b.decisionT=999;}},
+    activateBot(index,x,y,z,hp=100){const b=bots[index];if(!b)return false;b.pos.set(x,y,z);b.group.position.copy(b.pos);b.alive=true;b.group.visible=true;b.hp=hp;b.grounded=true;b.respawn=0;b.shootCd=.8;b.decisionT=0;b.peekT=0;b.peekOut=false;b.cover=null;b.route=null;b.memoryT=0;b.lastSeen.set(0,0,0);return true;},
+    setBotHealth(index,hp){const b=bots[index];if(!b)return false;b.hp=hp;b.decisionT=0;return true;},
+    playerState(){return {x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,hp:player.hp,grounded:player.grounded,crouched:player.crouched,slideT:player.slideT,mantleT:player.mantleT,stance:$('stance').textContent};},
+    botStates(){return bots.map(b=>({id:b.id,x:b.pos.x,y:b.pos.y,z:b.pos.z,hp:b.hp,alive:b.alive,state:b.state,cover:b.cover?{x:b.cover.x,y:b.cover.y,z:b.cover.z}:null,route:b.route?{x:b.route.x,y:b.route.y,z:b.route.z}:null,memoryT:b.memoryT}));},
+    coverCandidate(index){const b=bots[index];if(!b)return null;const n=chooseCoverNode(b.pos,player.pos,coverNodes,{isHidden:(node,p)=>!lineOfSight(node.clone().setY(node.y+1.45),p.clone().setY(p.y+1.45)),isReachable:pathReachable,occupied:node=>coverOccupied(node,b)});return n?{x:n.x,y:n.y,z:n.z}:null;},
+    coverNodes(){return coverNodes.map(n=>({x:n.x,y:n.y,z:n.z}));},
+    navNodes(){return navNodes.map(n=>({x:n.x,y:n.y,z:n.z}));}
+  };
+}
 function coverOccupied(node,bot){ return bots.some(b=>b!==bot&&b.alive&&b.cover&&b.cover.distanceToSquared(node)<4); }
 function respawnBot(bot){bot.hp=100;bot.alive=true;bot.pos.copy(randomSpawn(player.pos,34));bot.group.position.copy(bot.pos);bot.group.visible=true;bot.shootCd=.7+Math.random()*.8;bot.cover=null;bot.route=null;bot.memoryT=0;bot.decisionT=0;}
 function botShoot(bot,dist){ bot.shootCd=.58+Math.random()*.72;const hit=Math.random()<clamp(.76-dist/105,.3,.7);const target=camera.position.clone();if(!hit)target.add(new THREE.Vector3((Math.random()-.5)*3,(Math.random()-.5)*2,(Math.random()-.5)*3));spawnTracer(bot.pos.clone().setY(bot.pos.y+1.45),target,0xff6b68,.08);if(hit)damagePlayer(7+Math.floor(Math.random()*5),bot.pos); }
