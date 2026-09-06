@@ -76,7 +76,8 @@ function installQualityPass(doc) {
   const damage = doc.querySelector('#dmgFlash');
   if (damage) {
     new MutationObserver(() => {
-      const alpha = Number((getComputedStyle(damage).backgroundColor.match(/[\d.]+/g) || [0, 0, 0, 0])[3] || 0);
+      const styles = doc.defaultView?.getComputedStyle(damage);
+      const alpha = Number((styles?.backgroundColor?.match(/[\d.]+/g) || [0, 0, 0, 0])[3] || 0);
       if (alpha > 0.05) pulse(doc, 'vx2-damaged', FEEDBACK_TIMINGS.damage);
     }).observe(damage, { attributes: true, attributeFilter: ['style'] });
   }
