@@ -1,0 +1,148 @@
+body.vx2{
+  --panel:rgba(7,12,22,.76);
+  --edge:rgba(135,166,210,.22);
+  --accent:#ffb020;
+  --accent2:#53e8a8;
+  --danger:#ff4967;
+  --text:#f3f7ff;
+  --muted:#93a4c2;
+}
+
+body.vx2 #gameCanvas{
+  filter:saturate(1.07) contrast(1.035);
+  transition:filter 70ms linear;
+}
+body.vx2.vx2-shot #gameCanvas{filter:saturate(1.13) contrast(1.045) brightness(1.035)}
+
+body.vx2 #menuScreen{
+  background:
+    radial-gradient(ellipse at 48% 44%,rgba(18,35,62,.05) 0%,rgba(5,10,20,.44) 54%,rgba(2,5,12,.96) 100%),
+    linear-gradient(110deg,rgba(5,11,23,.74),rgba(5,11,23,.08) 42%,rgba(5,11,23,.28) 72%,rgba(5,11,23,.78));
+}
+body.vx2 #topNav{gap:4px}
+body.vx2 .navLogo{font-size:18px;letter-spacing:3.5px;text-shadow:0 0 22px rgba(255,176,32,.2)}
+body.vx2 .navTab{border-radius:7px;padding:8px 12px;transition:background .15s,color .15s,border-color .15s}
+body.vx2 .navTab:hover{background:rgba(255,255,255,.045);color:var(--text)}
+body.vx2 .navTab.sel{background:rgba(255,176,32,.08);border-bottom-color:var(--accent)}
+body.vx2 #modeCard{
+  background:linear-gradient(180deg,rgba(12,20,34,.76),rgba(7,12,22,.88));
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 18px 60px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035);
+}
+body.vx2 .readyBtn{
+  border-radius:8px;
+  box-shadow:0 8px 30px rgba(255,176,32,.28),inset 0 1px rgba(255,255,255,.35);
+  text-shadow:0 1px rgba(255,255,255,.18);
+}
+body.vx2 .readyBtn:hover{filter:brightness(1.08)}
+body.vx2 .modeChip{background:rgba(255,255,255,.025)}
+body.vx2 .modeChip.sel{box-shadow:inset 0 0 0 1px rgba(255,176,32,.08)}
+
+body.vx2 .scoreChip{
+  background:linear-gradient(180deg,rgba(8,14,25,.80),rgba(8,14,25,.58));
+  border-color:rgba(255,255,255,.13);
+  border-radius:12px;
+  padding:7px 18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.04);
+}
+body.vx2 .scoreChip .val{font-variant-numeric:tabular-nums}
+body.vx2 #minimap{
+  border:1px solid rgba(147,174,214,.42);
+  box-shadow:0 0 0 4px rgba(5,10,18,.34),0 10px 28px rgba(0,0,0,.28);
+  background:rgba(5,10,18,.68);
+}
+body.vx2 .bottomLeft{gap:5px}
+body.vx2 .statBar{
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(6,10,18,.72);
+  box-shadow:0 5px 18px rgba(0,0,0,.18);
+}
+body.vx2 .statBar.hp .fill{background:linear-gradient(90deg,#ff4967,#ff8c50)}
+body.vx2 .statBar.armor .fill{background:linear-gradient(90deg,#428dff,#53e8a8)}
+body.vx2 .bottomRight{
+  min-width:145px;
+  padding:9px 11px 8px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:10px;
+  background:linear-gradient(180deg,rgba(7,12,22,.54),rgba(7,12,22,.78));
+  box-shadow:0 12px 34px rgba(0,0,0,.2);
+  backdrop-filter:blur(8px);
+}
+body.vx2 #ammoCounter{line-height:.95;font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(255,176,32,.18)}
+body.vx2 #weaponName{font-weight:800;color:#ffc15a}
+body.vx2 #killFeed{gap:4px}
+body.vx2 .killEntry{
+  border-left:2px solid var(--accent2);
+  border-radius:6px;
+  background:rgba(6,11,20,.76);
+  box-shadow:0 6px 20px rgba(0,0,0,.18);
+}
+body.vx2 .crosshair .arm{box-shadow:0 0 4px rgba(83,232,168,.62)}
+body.vx2 .crosshair-dot{box-shadow:0 0 5px rgba(83,232,168,.7)}
+body.vx2 #hitmarker{filter:drop-shadow(0 0 5px rgba(255,73,103,.65))}
+body.vx2 #centerMsg .big{font-size:27px;letter-spacing:4.5px;text-shadow:0 2px 24px rgba(255,73,103,.48)}
+
+body.vx2 .touchBtn{
+  background:rgba(9,16,28,.48);
+  border-width:1.5px;
+  box-shadow:inset 0 1px rgba(255,255,255,.04),0 6px 18px rgba(0,0,0,.12);
+  backdrop-filter:blur(4px);
+}
+body.vx2 .touchBtn.pressed{filter:brightness(1.22);transform:scale(.95)}
+body.vx2 .joyBase{background:rgba(8,15,26,.42);border-width:1.5px}
+body.vx2 .joyStick{background:rgba(83,232,168,.62)}
+
+#vx2BuildBadge{
+  position:fixed;
+  left:16px;
+  bottom:14px;
+  z-index:220;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:7px 9px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:7px;
+  background:rgba(5,10,18,.66);
+  backdrop-filter:blur(8px);
+  pointer-events:none;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);
+}
+#vx2BuildBadge strong{font-size:10px;letter-spacing:2px;color:#f3f7ff}
+#vx2BuildBadge span{font-size:8px;letter-spacing:1.2px;color:#93a4c2}
+
+#vx2Feedback{position:fixed;inset:0;z-index:43;pointer-events:none;opacity:0;transition:opacity 110ms ease-out}
+body.vx2.vx2-shot #vx2Feedback{
+  opacity:1;
+  background:radial-gradient(circle at 61% 59%,rgba(255,225,174,.075),transparent 18%);
+  transition:none;
+}
+body.vx2.vx2-hit #vx2Feedback{
+  opacity:1;
+  background:radial-gradient(circle at 50% 50%,rgba(255,176,32,.08),transparent 13%);
+  transition:none;
+}
+body.vx2.vx2-kill #vx2Feedback{
+  opacity:1;
+  box-shadow:inset 0 0 90px rgba(83,232,168,.045);
+}
+body.vx2.vx2-damaged #vx2Feedback{
+  opacity:1;
+  box-shadow:inset 0 0 95px rgba(255,35,67,.16);
+  transition:none;
+}
+body.vx2.vx2-objective #vx2Feedback{opacity:1;box-shadow:inset 0 0 70px rgba(255,176,32,.035)}
+
+@media (pointer:coarse){
+  body.vx2 .bottomRight{
+    min-width:0;
+    padding:5px 9px;
+    border-radius:8px;
+    background:rgba(7,12,22,.58);
+  }
+  #vx2BuildBadge{left:8px;bottom:8px;transform:scale(.86);transform-origin:bottom left}
+}
+
+@media (prefers-reduced-motion:reduce){
+  body.vx2 *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
