@@ -4,7 +4,7 @@ async function collectBrowserProblems(page) {
   const problems = [];
   page.on('pageerror', error => problems.push(`pageerror: ${error.message}`));
   page.on('console', message => {
-    if (message.type() === 'error') problems.push(`console: ${message.text()}`));
+    if (message.type() === 'error') problems.push(`console: ${message.text()}`);
   });
   return problems;
 }
