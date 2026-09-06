@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 export default defineConfig({
   base: './',
   build: {
+    assetsInlineLimit: 0,
     rollupOptions: {
       input: {
         classic: resolve(process.cwd(), 'index.html'),
