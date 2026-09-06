@@ -17,6 +17,10 @@ export class FirstPersonFeel {
     this.rollKick = 0;
     this.bobPhase = 0;
     this.landImpulse = 0;
+    this.reloadRemaining = 0;
+    this.reloadDuration = 0;
+    this.switchRemaining = 0;
+    this.switchDuration = 0;
   }
 
   onLook(dx, dy) {
@@ -36,6 +40,21 @@ export class FirstPersonFeel {
     this.landImpulse = Math.min(0.12, this.landImpulse + 0.035 * intensity);
   }
 
+  onReload(duration) {
+    this.reloadDuration = Math.max(0.01, duration);
+    this.reloadRemaining = this.reloadDuration;
+  }
+
+  onSwitch(duration = 0.34) {
+    this.switchDuration = Math.max(0.01, duration);
+    this.switchRemaining = this.switchDuration;
+  }
+
+  cancelActions() {
+    this.reloadRemaining = 0;
+    this.switchRemaining = 0;
+  }
+
   update(dt, state) {
     const { weapon, ads, moving, sprinting, grounded, speed01, strafing = 0 } = state;
     const adsAmount = clamp(ads, 0, 1);
@@ -45,6 +64,8 @@ export class FirstPersonFeel {
     this.kick = damp(this.kick, 0, weapon.recoil.recovery * 1.35, dt);
     this.rollKick = damp(this.rollKick, 0, weapon.recoil.recovery * 1.2, dt);
     this.landImpulse = damp(this.landImpulse, 0, 13, dt);
+    this.reloadRemaining = Math.max(0, this.reloadRemaining - dt);
+    this.switchRemaining = Math.max(0, this.switchRemaining - dt);
 
     if (moving && grounded) this.bobPhase += dt * THREE.MathUtils.lerp(7.5, 11.2, sprinting ? 1 : speed01);
     const moveAmount = moving && grounded ? 1 : 0;
@@ -64,12 +85,33 @@ export class FirstPersonFeel {
     const sprintDrop = sprinting ? 0.11 : 0;
     const sprintYaw = sprinting ? 0.28 : 0;
 
-    this.weaponRig.position.x = damp(this.weaponRig.position.x, restX + swayX + bobX, 17, dt);
-    this.weaponRig.position.y = damp(this.weaponRig.position.y, restY + swayY + bobY - sprintDrop - this.landImpulse, 17, dt);
-    this.weaponRig.position.z = damp(this.weaponRig.position.z, restZ + this.kick, 22, dt);
-    this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, -this.recoilPitch * 8 + this.landImpulse * 1.8, 20, dt);
-    this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, sprintYaw + THREE.MathUtils.lerp(0.035, 0, adsAmount), 12, dt);
-    this.weaponRig.rotation.z = damp(this.weaponRig.rotation.z, -strafing * 0.035 + this.rollKick * 5, 14, dt);
+    let actionX = 0, actionY = 0, actionZ = 0, actionPitch = 0, actionYaw = 0, actionRoll = 0;
+    if (this.reloadRemaining > 0) {
+      const p = 1 - this.reloadRemaining / this.reloadDuration;
+      const arc = Math.sin(p * Math.PI);
+      const late = Math.sin(Math.min(1, p * 1.18) * Math.PI);
+      actionX = 0.075 * arc;
+      actionY = -0.105 * arc;
+      actionZ = 0.055 * arc;
+      actionPitch = -0.26 * late;
+      actionYaw = -0.22 * arc;
+      actionRoll = -0.62 * arc;
+    }
+    if (this.switchRemaining > 0) {
+      const p = 1 - this.switchRemaining / this.switchDuration;
+      const dip = Math.sin(p * Math.PI);
+      actionY -= 0.23 * dip;
+      actionZ += 0.06 * dip;
+      actionYaw += 0.32 * dip;
+      actionRoll += 0.16 * dip;
+    }
+
+    this.weaponRig.position.x = damp(this.weaponRig.position.x, restX + swayX + bobX + actionX, 17, dt);
+    this.weaponRig.position.y = damp(this.weaponRig.position.y, restY + swayY + bobY - sprintDrop - this.landImpulse + actionY, 17, dt);
+    this.weaponRig.position.z = damp(this.weaponRig.position.z, restZ + this.kick + actionZ, 22, dt);
+    this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, -this.recoilPitch * 8 + this.landImpulse * 1.8 + actionPitch, 20, dt);
+    this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, sprintYaw + THREE.MathUtils.lerp(0.035, 0, adsAmount) + actionYaw, 12, dt);
+    this.weaponRig.rotation.z = damp(this.weaponRig.rotation.z, -strafing * 0.035 + this.rollKick * 5 + actionRoll, 14, dt);
 
     const targetFov = THREE.MathUtils.lerp(
       THREE.MathUtils.lerp(this.baseFov, this.sprintFov, sprinting ? 1 : 0),
