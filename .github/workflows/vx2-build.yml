@@ -40,3 +40,11 @@ jobs:
           test "$(find dist -type f -name '*.glb' | wc -l)" -ge 3
           test "$(find dist -type f -name '*.ogg' | wc -l)" -ge 6
           grep -R "GREENFIELD" dist/vx2.html dist/assets >/dev/null
+
+      - name: Upload browser-playtest build
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxstrike-vx2-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
