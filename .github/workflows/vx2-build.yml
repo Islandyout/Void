@@ -1,0 +1,36 @@
+name: VOXSTRIKE 2.0 Build
+
+on:
+  push:
+    branches:
+      - dev/voxstrike-2.0
+  pull_request:
+    paths:
+      - 'vx2.html'
+      - 'src/**'
+      - 'package.json'
+      - 'vite.config.js'
+      - '.github/workflows/vx2-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build classic and VX2 previews
+        run: npm run build
+
+      - name: Verify entry points
+        run: |
+          test -f dist/index.html
+          test -f dist/vx2.html
