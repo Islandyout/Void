@@ -8,16 +8,16 @@
 #crouchBtn.active{background:rgba(111,195,255,.2);border-color:rgba(111,195,255,.85);color:#cfeaff}
 @media(pointer:coarse){
   #touch{--move:clamp(112px,31vmin,170px);--fire:clamp(62px,18vmin,92px);--ads:clamp(42px,11vmin,58px);--small:clamp(40px,10vmin,54px);--jump:clamp(48px,13vmin,64px);--crouch:clamp(44px,12vmin,60px)}
-  #damageDir{width:205px;height:205px;margin:-102.5px 0 0 -102.5px}
-  #movePad{left:16px;bottom:18px;width:var(--move);height:var(--move)}
-  #moveKnob{width:calc(var(--move) * .38);height:calc(var(--move) * .38)}
-  #health{left:16px;transform:none;bottom:calc(18px + var(--move) + 24px);width:min(145px,42vw)}
-  #stance{top:auto;left:16px;bottom:calc(18px + var(--move) + 68px)}
-  #weapon{right:auto;left:50%;transform:translateX(-50%);bottom:16px;text-align:center;max-width:128px}
-  #fireBtn{right:14px;bottom:22vh;width:var(--fire);height:var(--fire)}
-  #adsBtn{right:calc(24px + var(--fire));bottom:22vh;width:var(--ads);height:var(--ads)}
-  #reloadBtn{right:14px;bottom:calc(22vh + var(--fire) + 12px);width:var(--small);height:var(--small)}
-  #crouchBtn{right:14px;bottom:18px;width:var(--crouch);height:var(--crouch)}
-  #jumpBtn{right:calc(26px + var(--crouch));bottom:18px;width:var(--jump);height:var(--jump)}
-  #swapBtn{right:calc(26px + var(--crouch));bottom:calc(30px + var(--jump));width:var(--small);height:var(--small)}
+  #app #damageDir{width:205px;height:205px;margin:-102.5px 0 0 -102.5px}
+  #touch #movePad{left:16px;bottom:18px;width:var(--move);height:var(--move)}
+  #touch #moveKnob{width:calc(var(--move) * .38);height:calc(var(--move) * .38)}
+  #hud #health{left:16px;transform:none;bottom:calc(18px + var(--move) + 24px);width:min(145px,42vw)}
+  #hud #stance{top:auto;left:16px;bottom:calc(18px + var(--move) + 68px)}
+  #hud #weapon{right:auto;left:50%;transform:translateX(-50%);bottom:16px;text-align:center;max-width:128px}
+  #touch #fireBtn{right:14px;bottom:22vh;width:var(--fire);height:var(--fire)}
+  #touch #adsBtn{right:calc(24px + var(--fire));bottom:22vh;width:var(--ads);height:var(--ads)}
+  #touch #reloadBtn{right:14px;bottom:calc(22vh + var(--fire) + 12px);width:var(--small);height:var(--small)}
+  #touch #crouchBtn{right:14px;bottom:18px;width:var(--crouch);height:var(--crouch)}
+  #touch #jumpBtn{right:calc(26px + var(--crouch));bottom:18px;width:var(--jump);height:var(--jump)}
+  #touch #swapBtn{right:calc(26px + var(--crouch));bottom:calc(30px + var(--jump));width:var(--small);height:var(--small)}
 }
