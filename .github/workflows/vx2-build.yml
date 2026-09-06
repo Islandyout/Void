@@ -43,6 +43,14 @@ jobs:
           test "$(find dist -type f -name '*.ogg' | wc -l)" -ge 6
           grep -R "GREENFIELD" dist/vx2.html dist/assets >/dev/null
 
+      - name: Upload tested Slice 03 source
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxstrike-vx2-tested-source
+          path: src/vertical-slice/greenfield-v3.js
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
