@@ -3,20 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#070b12" />
-  <title>VOXSTRIKE 2.0 DEV</title>
-  <style>
-    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#070b12}
-    #vx2Game{position:fixed;inset:0;width:100%;height:100%;border:0;background:#070b12}
-  </style>
+  <meta name="theme-color" content="#071019" />
+  <title>VOXSTRIKE 2.0 — Greenfield Vertical Slice</title>
 </head>
 <body>
-  <iframe
-    id="vx2Game"
-    src="./index.html"
-    title="VOXSTRIKE 2.0 development preview"
-    allow="autoplay; fullscreen; gamepad; gyroscope; accelerometer"
-    allowfullscreen></iframe>
-  <script type="module" src="./src/vx2/bootstrap.js"></script>
+  <div id="app">
+    <canvas id="game"></canvas>
+    <div id="damage"></div><div id="hitflash"></div>
+    <div id="hud" class="hidden">
+      <div id="build">VX2 // GREENFIELD<br>COMBAT SLICE 02</div>
+      <div class="top">
+        <div class="chip"><strong id="kills">0</strong><span>KILLS</span></div>
+        <div class="chip"><strong id="timer">5:00</strong><span>TIME</span></div>
+        <div class="chip"><strong id="score">0</strong><span>SCORE</span></div>
+      </div>
+      <div id="crosshair"><i class="arm t"></i><i class="arm b"></i><i class="arm l"></i><i class="arm r"></i></div>
+      <div id="killfeed"></div>
+      <div id="health"><div class="label">VITALS <b id="hpLabel">100</b></div><div class="bar"><i id="hpFill"></i></div></div>
+      <div id="weapon"><div class="role" id="weaponRole"></div><div id="weaponName"></div><div id="ammo"></div></div>
+      <div id="weaponStrip"></div>
+    </div>
+    <div id="touch">
+      <div id="lookPad"></div><div id="movePad"><div id="moveKnob"></div></div>
+      <div class="touchBtn" id="fireBtn">FIRE</div><div class="touchBtn" id="adsBtn">ADS</div>
+      <div class="touchBtn" id="reloadBtn">RLD</div><div class="touchBtn" id="swapBtn">WPN</div>
+    </div>
+    <div id="start">
+      <div class="panel">
+        <div class="kicker">VOXSTRIKE 2.0 // VERTICAL SLICE</div>
+        <div class="title">GREEN<span>FIELD</span></div>
+        <p class="copy">A focused Deathmatch rebuild for the new gameplay foundation. Weapon data, recoil, camera feel and the match runtime are now modular instead of being hard-coded into the original 221 KB game file.</p>
+        <div class="controls"><div><b>WASD</b> MOVE · <b>SHIFT</b> SPRINT</div><div><b>MOUSE</b> AIM · <b>RMB</b> ADS</div><div><b>LMB</b> FIRE · <b>R</b> RELOAD</div><div><b>1–3</b> SWITCH · <b>SPACE</b> JUMP</div></div>
+        <button id="deploy">DEPLOY</button>
+      </div>
+    </div>
+    <div id="death" class="hidden"><div class="panel"><h2>ELIMINATED</h2><p class="deathStat">Regroup and redeploy into Greenfield.</p><button id="respawn">REDEPLOY</button></div></div>
+    <div id="end" class="hidden"><div class="panel"><div class="kicker">MATCH COMPLETE</div><h2 id="endTitle">GREENFIELD</h2><p class="deathStat" id="endStats"></p><button id="again">PLAY AGAIN</button></div></div>
+  </div>
+  <script type="module" src="./src/vertical-slice/greenfield.js"></script>
 </body>
 </html>
