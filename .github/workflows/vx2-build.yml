@@ -34,3 +34,9 @@ jobs:
         run: |
           test -f dist/index.html
           test -f dist/vx2.html
+
+      - name: Verify VX2 combat assets
+        run: |
+          test "$(find dist -type f -name '*.glb' | wc -l)" -ge 3
+          test "$(find dist -type f -name '*.ogg' | wc -l)" -ge 6
+          grep -R "GREENFIELD" dist/vx2.html dist/assets >/dev/null
