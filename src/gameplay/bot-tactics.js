@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 const tmpA = new THREE.Vector3();
+const tmpB = new THREE.Vector3();
 
 export function chooseRouteNode(botPos, goalPos, nodes, isReachable) {
   let best = null;
@@ -28,8 +29,10 @@ export function chooseCoverNode(botPos, playerPos, nodes, options) {
     if (!isHidden(node, playerPos) || !isReachable(botPos, node) || occupied(node)) continue;
     const travel = node.distanceTo(botPos);
     const separation = Math.abs(playerDistance - 22) * 0.18;
-    const flank = Math.abs(tmpA.copy(node).sub(playerPos).normalize().dot(tmpA.copy(botPos).sub(playerPos).normalize())) * 2.5;
-    const score = travel + separation + flank;
+    const coverDir = tmpA.copy(node).sub(playerPos).normalize();
+    const botDir = tmpB.copy(botPos).sub(playerPos).normalize();
+    const sameLanePenalty = Math.abs(coverDir.dot(botDir)) * 2.5;
+    const score = travel + separation + sameLanePenalty;
     if (score < bestScore) {
       bestScore = score;
       best = node;
