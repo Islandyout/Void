@@ -1,0 +1,9 @@
+#damageDir{position:fixed;left:50%;top:50%;width:250px;height:250px;margin:-125px 0 0 -125px;z-index:24;pointer-events:none;opacity:0;transform:rotate(var(--damage-angle,0rad));transition:opacity .18s}
+#damageDir.active{opacity:1;animation:damageDirPulse .72s ease-out}
+#damageDir i{position:absolute;left:50%;top:0;width:72px;height:26px;margin-left:-36px;background:linear-gradient(to bottom,rgba(255,63,91,.95),rgba(255,63,91,0));clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 0 9px rgba(255,73,104,.65))}
+@keyframes damageDirPulse{0%{opacity:0;transform:rotate(var(--damage-angle,0rad)) scale(.72)}16%{opacity:1;transform:rotate(var(--damage-angle,0rad)) scale(1)}70%{opacity:.8}100%{opacity:0}}
+#stance{position:absolute;left:16px;top:44px;padding:5px 8px;border-radius:5px;background:rgba(7,14,24,.58);border:1px solid rgba(88,224,173,.22);font:800 8px/1 ui-monospace,monospace;letter-spacing:.18em;color:#58e0ad}
+#jumpBtn{right:23vmin;bottom:6vh;width:12vmin;height:12vmin;border-color:rgba(255,176,32,.55)}
+#crouchBtn{right:5vmin;bottom:5vh;width:11vmin;height:11vmin;border-color:rgba(111,195,255,.5)}
+#crouchBtn.active{background:rgba(111,195,255,.2);border-color:rgba(111,195,255,.85);color:#cfeaff}
+@media(pointer:coarse){#damageDir{width:205px;height:205px;margin:-102.5px 0 0 -102.5px}#stance{top:auto;left:12px;bottom:calc(31vmin + 34px)}#jumpBtn{right:25vmin;bottom:6vh}#crouchBtn{right:6vmin;bottom:5vh}}
