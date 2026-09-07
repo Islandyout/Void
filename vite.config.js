@@ -7,7 +7,8 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rollupOptions: {
       input: {
-        classic: resolve(process.cwd(), 'index.html'),
+        index: resolve(process.cwd(), 'index.html'),
+        classic: resolve(process.cwd(), 'classic.html'),
         vx2: resolve(process.cwd(), 'vx2.html'),
       },
     },

@@ -4,14 +4,19 @@ on:
   push:
     branches:
       - dev/voxstrike-2.0
+      - main
   pull_request:
     paths:
+      - 'index.html'
+      - 'classic.html'
       - 'vx2.html'
+      - 'public/**'
       - 'src/**'
       - 'tests/**'
       - 'package.json'
       - 'playwright.config.js'
       - 'vite.config.js'
+      - 'vercel.json'
       - '.github/workflows/vx2-build.yml'
 
 jobs:
@@ -29,19 +34,25 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build classic and VX2 previews
+      - name: Build release and classic fallback
         run: npm run build
 
-      - name: Verify entry points
+      - name: Verify entry points and PWA files
         run: |
           test -f dist/index.html
+          test -f dist/classic.html
           test -f dist/vx2.html
+          test -f dist/manifest.webmanifest
+          test -f dist/sw.js
+          test -f dist/icon-192.png
+          test -f dist/icon-512.png
+          test -f dist/icon.svg
 
       - name: Verify VX2 combat assets
         run: |
           test "$(find dist -type f -name '*.glb' | wc -l)" -ge 3
           test "$(find dist -type f -name '*.ogg' | wc -l)" -ge 6
-          grep -R "GREENFIELD" dist/vx2.html dist/assets >/dev/null
+          grep -R "GREENFIELD" dist/index.html dist/vx2.html dist/assets >/dev/null
 
       - name: Upload tested Slice 03 source
         uses: actions/upload-artifact@v4
