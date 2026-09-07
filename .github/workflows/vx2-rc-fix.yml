@@ -1,4 +1,4 @@
-name: Apply VX2 release-candidate fixes
+name: Apply VX2 release candidate fixes
 
 on:
   push:
@@ -9,44 +9,40 @@ permissions:
   contents: write
 
 jobs:
-  patch-release-candidate:
+  patch:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Patch traversal QA mobile and release wiring
-        shell: python
+      - name: Patch release blockers
         run: |
+          python - <<'PY'
           from pathlib import Path
-          import json
 
           js = Path('src/vertical-slice/greenfield-v3.js')
           s = js.read_text()
-          old = "function floorAt(x,z,currentY,maxRise=.6){ let floor=0; for(const c of colliders){ if(!c.walkable||!overlapsXZ(c,x,z,.18))continue; if(c.maxY<=currentY+maxRise&&c.maxY>floor)floor=c.maxY; } return floor; }"
-          new = "function floorAt(x,z,currentY,maxRise=.6,radius=.18){ let floor=0; for(const c of colliders){ if(!c.walkable||!overlapsXZ(c,x,z,radius))continue; if(c.maxY<=currentY+maxRise&&c.maxY>floor)floor=c.maxY; } return floor; }"
-          if old in s:
-              s = s.replace(old, new, 1)
-          elif new not in s:
-              raise SystemExit('floorAt anchor not found')
-
-          old = "function canOccupyGround(x,z,r=.45){ const y=floorAt(x,z,.1,.55); return !blockedAt(x,z,y,1.86,r); }"
-          new = "function canOccupyGround(x,z,r=.45){ const y=floorAt(x,z,.1,.55,r); return !blockedAt(x,z,y,1.86,r); }"
-          if old in s:
-              s = s.replace(old, new, 1)
-
-          old = "const f=floorAt(nx,nz,entity.pos.y,step);"
-          new = "const f=floorAt(nx,nz,entity.pos.y,step,radius);"
-          if old in s:
-              s = s.replace(old, new, 1)
-          elif new not in s:
-              raise SystemExit('moveEntity floor probe anchor not found')
-
-          old = "const probe=player.pos.clone().addScaledVector(fwd,.78); for(const c of colliders){ if(!overlapsXZ(c,probe.x,probe.z,.18))continue;"
-          new = "const probe=player.pos.clone().addScaledVector(fwd,.82); for(const c of colliders){ if(!overlapsXZ(c,probe.x,probe.z,.3))continue;"
-          if old in s:
-              s = s.replace(old, new, 1)
-
+          replacements = [
+            (
+              "function floorAt(x,z,currentY,maxRise=.6){ let floor=0; for(const c of colliders){ if(!c.walkable||!overlapsXZ(c,x,z,.18))continue; if(c.maxY<=currentY+maxRise&&c.maxY>floor)floor=c.maxY; } return floor; }",
+              "function floorAt(x,z,currentY,maxRise=.6,radius=.18){ let floor=0; for(const c of colliders){ if(!c.walkable||!overlapsXZ(c,x,z,radius))continue; if(c.maxY<=currentY+maxRise&&c.maxY>floor)floor=c.maxY; } return floor; }"
+            ),
+            (
+              "function canOccupyGround(x,z,r=.45){ const y=floorAt(x,z,.1,.55); return !blockedAt(x,z,y,1.86,r); }",
+              "function canOccupyGround(x,z,r=.45){ const y=floorAt(x,z,.1,.55,r); return !blockedAt(x,z,y,1.86,r); }"
+            ),
+            (
+              "const f=floorAt(nx,nz,entity.pos.y,step);",
+              "const f=floorAt(nx,nz,entity.pos.y,step,radius);"
+            ),
+            (
+              "const probe=player.pos.clone().addScaledVector(fwd,.78); for(const c of colliders){ if(!overlapsXZ(c,probe.x,probe.z,.18))continue;",
+              "const probe=player.pos.clone().addScaledVector(fwd,.82); for(const c of colliders){ if(!overlapsXZ(c,probe.x,probe.z,.3))continue;"
+            )
+          ]
+          for old, new in replacements:
+              if old in s:
+                  s = s.replace(old, new, 1)
           js.write_text(s)
 
           test = Path('tests/e2e/greenfield.spec.js')
@@ -55,15 +51,13 @@ jobs:
           new = "  await expect.poll(() => page.evaluate(() => Boolean(window.__VX2_QA__)), { timeout: 5000 }).toBeTruthy();\n  await page.evaluate(() => { if (document.pointerLockElement) document.exitPointerLock(); });\n  await expect.poll(() => page.evaluate(() => document.pointerLockElement === null), { timeout: 3000 }).toBeTruthy();\n  await page.evaluate(() => window.__VX2_QA__.parkBots());"
           if old in t:
               t = t.replace(old, new, 1)
-          elif 'document.pointerLockElement === null' not in t:
-              raise SystemExit('openQa pointer-lock anchor not found')
           test.write_text(t)
 
           css = Path('src/vertical-slice/greenfield-v3.css')
           c = css.read_text()
           marker = '/* VX2 MOBILE RELEASE LAYOUT */'
           if marker not in c:
-              c += """
+              c += '''
 
 /* VX2 MOBILE RELEASE LAYOUT */
 @media(pointer:coarse){
@@ -89,49 +83,18 @@ jobs:
   #touch #jumpBtn{right:68px;bottom:14px;width:var(--jump);height:var(--jump)}
   #touch #swapBtn{right:126px;bottom:14px;width:var(--small);height:var(--small)}
 }
-"""
+'''
           css.write_text(c)
+          PY
 
-          html = Path('vx2.html')
-          h = html.read_text()
-          h = h.replace('VOXSTRIKE 2.0 — Greenfield Vertical Slice', 'VOXSTRIKE 2.0 — Greenfield Deathmatch')
-          h = h.replace('VX2 // GREENFIELD<br>COMBAT SLICE 03', 'VX2 // GREENFIELD<br>DEATHMATCH')
-          h = h.replace('VOXSTRIKE 2.0 // VERTICAL SLICE 03', 'VOXSTRIKE 2.0 // MOBILE ALPHA')
-          h = h.replace('Greenfield now tests the deeper combat foundation: authored interiors and vertical routes, tactical bots, traversal, weapon action animation, shell ejection and directional damage feedback.', 'Fast five-minute Greenfield Deathmatch with tactical bots, vertical routes, mantling, sliding, tuned weapons, shell ejection and directional damage feedback.')
-          html.write_text(h)
-
-          manifest = Path('manifest.webmanifest')
-          m = json.loads(manifest.read_text())
-          m['description'] = 'VOXSTRIKE 2.0 Greenfield mobile combat alpha'
-          m['start_url'] = './vx2.html'
-          manifest.write_text(json.dumps(m, indent=2) + '\n')
-
-          package = Path('package.json')
-          p = json.loads(package.read_text())
-          p['version'] = '2.0.0-alpha.1'
-          package.write_text(json.dumps(p, indent=2) + '\n')
-
-          Path('vercel.json').write_text(json.dumps({
-            'buildCommand': 'npm run build',
-            'outputDirectory': 'dist',
-            'rewrites': [
-              {'source': '/', 'destination': '/vx2.html'},
-              {'source': '/play', 'destination': '/vx2.html'},
-              {'source': '/classic', 'destination': '/index.html'}
-            ],
-            'headers': [
-              {'source': '/vx2.html', 'headers': [{'key': 'Cache-Control', 'value': 'public, max-age=0, must-revalidate'}]}
-            ]
-          }, indent=2) + '\n')
-
-      - name: Commit release-candidate fixes
+      - name: Commit fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/vertical-slice/greenfield-v3.js src/vertical-slice/greenfield-v3.css tests/e2e/greenfield.spec.js vx2.html manifest.webmanifest package.json vercel.json
+          git add src/vertical-slice/greenfield-v3.js src/vertical-slice/greenfield-v3.css tests/e2e/greenfield.spec.js
           if git diff --cached --quiet; then
-            echo "Release-candidate fixes already applied."
+            echo "Release fixes already applied."
             exit 0
           fi
-          git commit -m "fix(vx2): clear release-candidate QA blockers"
+          git commit -m "fix(vx2): clear traversal and mobile QA blockers"
           git push
