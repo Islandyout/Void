@@ -130,11 +130,11 @@ test('desktop Slice 03 renders and combat controls respond', async ({ page }) =>
   await expect(page.locator('#stance')).toHaveText('READY');
 
   await switchWhenReady(page, 'Digit2', 'P9 SIDEARM');
+  await page.locator('#game').click({ position: { x: 80, y: 80 } });
+  await page.waitForTimeout(150);
   const before = await page.locator('#ammo').textContent();
-  await page.mouse.down({ button: 'left' });
-  await page.waitForTimeout(180);
-  await page.mouse.up({ button: 'left' });
-  await expect.poll(() => page.locator('#ammo').textContent()).not.toBe(before);
+  await page.locator('#game').click({ position: { x: 80, y: 80 } });
+  await expect.poll(() => page.locator('#ammo').textContent(), { timeout: 5000 }).not.toBe(before);
   await page.keyboard.press('KeyR');
   await expect.poll(() => page.locator('#ammo').textContent(), { timeout: 8000 }).not.toContain('RLD');
   await switchWhenReady(page, 'Digit3', 'BRUTE-12');
