@@ -51,6 +51,29 @@ function overlapArea(a, b) {
   return width * height;
 }
 
+async function assertMobileLayout(page) {
+  const ids = ['movePad', 'fireBtn', 'adsBtn', 'reloadBtn', 'swapBtn', 'jumpBtn', 'crouchBtn', 'health'];
+  const boxes = {};
+  for (const id of ids) {
+    boxes[id] = await page.locator(`#${id}`).boundingBox();
+    expect(boxes[id], `${id} missing`).toBeTruthy();
+  }
+  for (let i = 0; i < ids.length; i += 1) {
+    for (let j = i + 1; j < ids.length; j += 1) {
+      expect(overlapArea(boxes[ids[i]], boxes[ids[j]]), `${ids[i]} overlaps ${ids[j]}`).toBeLessThanOrEqual(1);
+    }
+  }
+}
+
+async function openQa(page) {
+  await page.goto('http://127.0.0.1:4173/vx2.html?qa=1');
+  await assertWebGL(page);
+  await page.locator('#deploy').click();
+  await expect(page.locator('#hud')).not.toHaveClass(/hidden/);
+  await expect.poll(() => page.evaluate(() => Boolean(window.__VX2_QA__)), { timeout: 5000 }).toBeTruthy();
+  await page.evaluate(() => window.__VX2_QA__.parkBots());
+}
+
 test('desktop Slice 03 renders and traversal/combat controls respond', async ({ page }) => {
   const problems = await collectBrowserProblems(page);
   await page.goto('http://127.0.0.1:4173/vx2.html');
@@ -90,35 +113,112 @@ test('desktop Slice 03 renders and traversal/combat controls respond', async ({ 
   expect(problems, problems.join('\n')).toEqual([]);
 });
 
-test('mobile Slice 03 touch controls do not overlap at 360x800', async ({ browser }) => {
-  const context = await browser.newContext({
-    viewport: { width: 360, height: 800 },
-    isMobile: true,
-    hasTouch: true,
-    deviceScaleFactor: 2,
-  });
-  const page = await context.newPage();
+test('known Greenfield mantle edge reaches the top surface', async ({ page }) => {
   const problems = await collectBrowserProblems(page);
-  await page.goto('http://127.0.0.1:4173/vx2.html');
-  await assertWebGL(page);
-  await page.locator('#deploy').click();
-  await expect(page.locator('#hud')).not.toHaveClass(/hidden/);
+  await openQa(page);
+  await page.evaluate(() => window.__VX2_QA__.teleportPlayer(-12, 0, -40.05, Math.PI, 0));
+  await page.keyboard.press('Space');
 
-  const ids = ['movePad', 'fireBtn', 'adsBtn', 'reloadBtn', 'swapBtn', 'jumpBtn', 'crouchBtn', 'health'];
-  const boxes = {};
-  for (const id of ids) {
-    boxes[id] = await page.locator(`#${id}`).boundingBox();
-    expect(boxes[id], `${id} missing`).toBeTruthy();
-  }
-  for (let i = 0; i < ids.length; i += 1) {
-    for (let j = i + 1; j < ids.length; j += 1) {
-      const a = boxes[ids[i]];
-      const b = boxes[ids[j]];
-      expect(overlapArea(a, b), `${ids[i]} overlaps ${ids[j]}`).toBeLessThanOrEqual(1);
+  await expect.poll(
+    () => page.evaluate(() => window.__VX2_QA__.playerState().mantleT),
+    { timeout: 3000, intervals: [100, 150, 250] },
+  ).toBeGreaterThan(0);
+
+  await expect.poll(
+    () => page.evaluate(() => window.__VX2_QA__.playerState().y),
+    { timeout: 5000, intervals: [150, 250, 400] },
+  ).toBeGreaterThan(1.05);
+
+  await expect.poll(
+    () => page.evaluate(() => window.__VX2_QA__.playerState().mantleT),
+    { timeout: 5000, intervals: [150, 250, 400] },
+  ).toBe(0);
+  expect(problems, problems.join('\n')).toEqual([]);
+});
+
+test('warehouse stairs connect to the mezzanine without snagging', async ({ page }) => {
+  const problems = await collectBrowserProblems(page);
+  await openQa(page);
+  await page.evaluate(() => window.__VX2_QA__.teleportPlayer(-21.3, 0, -47.25, 0, 0));
+  await page.keyboard.down('KeyW');
+
+  await expect.poll(
+    () => page.evaluate(() => window.__VX2_QA__.playerState().y),
+    { timeout: 9000, intervals: [250, 350, 500] },
+  ).toBeGreaterThan(2.4);
+  await page.keyboard.up('KeyW');
+
+  const state = await page.evaluate(() => window.__VX2_QA__.playerState());
+  expect(state.z).toBeLessThan(-52.5);
+  expect(state.grounded).toBeTruthy();
+  expect(problems, problems.join('\n')).toEqual([]);
+});
+
+test('low-health bot selects and moves toward valid cover', async ({ page }) => {
+  const problems = await collectBrowserProblems(page);
+  await openQa(page);
+
+  const placements = [
+    { player: [0, 0, -30], bot: [18, 0, -30] },
+    { player: [2, 0, -26], bot: [25, 0, -26] },
+    { player: [20, 0, -8], bot: [-8, 0, -8] },
+    { player: [-12, 0, 18], bot: [15, 0, 18] },
+    { player: [-18, 0, -25], bot: [18, 0, -25] },
+  ];
+
+  let chosen = null;
+  for (const placement of placements) {
+    const result = await page.evaluate(({ player, bot }) => {
+      window.__VX2_QA__.parkBots();
+      window.__VX2_QA__.teleportPlayer(player[0], player[1], player[2], 0, 0);
+      window.__VX2_QA__.activateBot(0, bot[0], bot[1], bot[2], 45);
+      return window.__VX2_QA__.coverCandidate(0);
+    }, placement);
+    if (!result) continue;
+
+    const start = await page.evaluate(() => window.__VX2_QA__.botStates()[0]);
+    await page.waitForTimeout(1800);
+    const after = await page.evaluate(() => window.__VX2_QA__.botStates()[0]);
+    if (after.cover && ['seek-cover', 'cover'].includes(after.state)) {
+      chosen = { start, after, candidate: result };
+      break;
     }
   }
 
-  await page.screenshot({ path: 'test-results/greenfield-mobile-360.png' });
+  expect(chosen, 'No deterministic placement produced active cover behavior').toBeTruthy();
+  const startDistance = Math.hypot(chosen.start.x - chosen.candidate.x, chosen.start.z - chosen.candidate.z);
+  const endDistance = Math.hypot(chosen.after.x - chosen.candidate.x, chosen.after.z - chosen.candidate.z);
+  expect(endDistance).toBeLessThan(startDistance);
+  expect(chosen.after.hp).toBeLessThanOrEqual(45);
   expect(problems, problems.join('\n')).toEqual([]);
-  await context.close();
 });
+
+for (const device of [
+  { name: 'portrait 360x800', width: 360, height: 800 },
+  { name: 'landscape 800x360', width: 800, height: 360 },
+]) {
+  test(`mobile Slice 03 controls do not overlap in ${device.name}`, async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: device.width, height: device.height },
+      isMobile: true,
+      hasTouch: true,
+      deviceScaleFactor: 2,
+    });
+    const page = await context.newPage();
+    const problems = await collectBrowserProblems(page);
+    await page.goto('http://127.0.0.1:4173/vx2.html');
+    await assertWebGL(page);
+    await page.locator('#deploy').tap();
+    await expect(page.locator('#hud')).not.toHaveClass(/hidden/);
+    await assertMobileLayout(page);
+
+    await page.locator('#swapBtn').tap();
+    await expect(page.locator('#weaponName')).toHaveText('P9 SIDEARM');
+    await page.locator('#crouchBtn').tap();
+    await expect(page.locator('#stance')).toHaveText('CROUCH');
+
+    await page.screenshot({ path: `test-results/greenfield-mobile-${device.width}x${device.height}.png` });
+    expect(problems, problems.join('\n')).toEqual([]);
+    await context.close();
+  });
+}
