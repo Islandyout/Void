@@ -127,15 +127,15 @@ function killFeed(text,head=false){ const e=document.createElement('div');e.clas
 function hitMarker(head=false){ const c=$('crosshair');c.classList.add('hit');setTimeout(()=>c.classList.remove('hit'),head?145:95);playAudio(head?HEADSHOT_URL:HIT_URL,head?.8:.55,head?1.04:1); }
 
 function overlapsXZ(c,x,z,r=.42){ return x+r>c.minX&&x-r<c.maxX&&z+r>c.minZ&&z-r<c.maxZ; }
-function floorAt(x,z,currentY,maxRise=.6){ let floor=0; for(const c of colliders){ if(!c.walkable||!overlapsXZ(c,x,z,.18))continue; if(c.maxY<=currentY+maxRise&&c.maxY>floor)floor=c.maxY; } return floor; }
+function floorAt(x,z,currentY,maxRise=.6,radius=.18){ let floor=0; for(const c of colliders){ if(!c.walkable||!overlapsXZ(c,x,z,radius))continue; if(c.maxY<=currentY+maxRise&&c.maxY>floor)floor=c.maxY; } return floor; }
 function blockedAt(x,z,feetY,height,radius=.42){ if(Math.abs(x)>105||Math.abs(z)>105)return true; for(const c of colliders){ if(!overlapsXZ(c,x,z,radius))continue; if(c.maxY<=feetY+.06)continue; if(c.minY>=feetY+height-.05)continue; return true; } return false; }
 function canOccupyGround(x,z,r=.45){ const y=floorAt(x,z,.1,.55); return !blockedAt(x,z,y,1.86,r); }
 function moveEntity(entity,dx,dz,radius=.43,height=1.72,step=.55){
-  const tryAxis=(axis,delta)=>{ if(!delta)return; const nx=axis==='x'?entity.pos.x+delta:entity.pos.x, nz=axis==='z'?entity.pos.z+delta:entity.pos.z; const f=floorAt(nx,nz,entity.pos.y,step); let feet=entity.pos.y; if(entity.grounded&&f-entity.pos.y<=step&&f-entity.pos.y>=-.42)feet=f; if(!blockedAt(nx,nz,feet,height,radius)){ entity.pos[axis]+=delta; if(entity.grounded&&Math.abs(f-entity.pos.y)<=step)entity.pos.y=f; } };
+  const tryAxis=(axis,delta)=>{ if(!delta)return; const nx=axis==='x'?entity.pos.x+delta:entity.pos.x, nz=axis==='z'?entity.pos.z+delta:entity.pos.z; const f=floorAt(nx,nz,entity.pos.y,step,Math.max(.18,radius-.04)); let feet=entity.pos.y; if(entity.grounded&&f-entity.pos.y<=step&&f-entity.pos.y>=-.42)feet=f; if(!blockedAt(nx,nz,feet,height,radius)){ entity.pos[axis]+=delta; if(entity.grounded&&Math.abs(f-entity.pos.y)<=step)entity.pos.y=f; } };
   tryAxis('x',dx);tryAxis('z',dz);
 }
 function randomSpawn(away=player.pos,minDist=25){ const choices=spawns.map(([x,z])=>new THREE.Vector3(x,0,z)).filter(p=>p.distanceTo(away)>=minDist&&canOccupyGround(p.x,p.z,.6)); return (choices[Math.floor(Math.random()*choices.length)]||new THREE.Vector3(0,0,-75)).clone(); }
-function pathReachable(from,to){ const dist=from.distanceTo(to),steps=Math.max(2,Math.ceil(dist/3)); for(let i=1;i<=steps;i++){const t=i/steps,x=THREE.MathUtils.lerp(from.x,to.x,t),z=THREE.MathUtils.lerp(from.z,to.z,t);if(!canOccupyGround(x,z,.48))return false;} return true; }
+function pathReachable(from,to){ const dist=from.distanceTo(to),steps=Math.max(2,Math.ceil(dist/2.4));let y=from.y||0;for(let i=1;i<=steps;i++){const t=i/steps,x=THREE.MathUtils.lerp(from.x,to.x,t),z=THREE.MathUtils.lerp(from.z,to.z,t),f=floorAt(x,z,y,.56,.44);if(f-y>.56||f-y<-.5||blockedAt(x,z,f,1.86,.44))return false;y=f;}return true; }
 function lineOfSight(from,to){ const dir=to.clone().sub(from),dist=dir.length();dir.normalize();raycaster.set(from,dir);raycaster.far=Math.max(.1,dist-.3);return raycaster.intersectObjects(worldMeshes,false).length===0; }
 
 function findMantle(){ const fwd=new THREE.Vector3(-Math.sin(player.yaw),0,-Math.cos(player.yaw));const probe=player.pos.clone().addScaledVector(fwd,.78); for(const c of colliders){ if(!overlapsXZ(c,probe.x,probe.z,.18))continue; const rise=c.maxY-player.pos.y; if(rise<.58||rise>1.82)continue; const target=player.pos.clone().addScaledVector(fwd,1.75);target.y=c.maxY;if(!blockedAt(target.x,target.z,target.y,1.7,.38))return target;} return null; }
@@ -157,7 +157,7 @@ if(new URLSearchParams(location.search).has('qa')){
     setBotHealth(index,hp){const b=bots[index];if(!b)return false;b.hp=hp;b.decisionT=0;return true;},
     playerState(){return {x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,hp:player.hp,grounded:player.grounded,crouched:player.crouched,slideT:player.slideT,mantleT:player.mantleT,stance:$('stance').textContent};},
     botStates(){return bots.map(b=>({id:b.id,x:b.pos.x,y:b.pos.y,z:b.pos.z,hp:b.hp,alive:b.alive,state:b.state,cover:b.cover?{x:b.cover.x,y:b.cover.y,z:b.cover.z}:null,route:b.route?{x:b.route.x,y:b.route.y,z:b.route.z}:null,memoryT:b.memoryT}));},
-    coverCandidate(index){const b=bots[index];if(!b)return null;const n=chooseCoverNode(b.pos,player.pos,coverNodes,{isHidden:(node,p)=>!lineOfSight(node.clone().setY(node.y+1.45),p.clone().setY(p.y+1.45)),isReachable:pathReachable,occupied:node=>coverOccupied(node,b)});return n?{x:n.x,y:n.y,z:n.z}:null;},
+    coverCandidate(index){const b=bots[index];if(!b)return null;const n=chooseCoverNode(b.pos,player.pos,coverNodes,{isHidden:(node,p)=>!lineOfSight(node.clone().setY(node.y+.92),p.clone().setY(p.y+1.45)),isReachable:pathReachable,occupied:node=>coverOccupied(node,b)});return n?{x:n.x,y:n.y,z:n.z}:null;},
     coverNodes(){return coverNodes.map(n=>({x:n.x,y:n.y,z:n.z}));},
     navNodes(){return navNodes.map(n=>({x:n.x,y:n.y,z:n.z}));}
   };
@@ -172,7 +172,7 @@ function updateBots(dt){
     bot.decisionT-=dt;bot.peekT-=dt;
     if(bot.decisionT<=0){
       bot.decisionT=.55+Math.random()*.45;
-      if(visible&&(bot.hp<68||Math.random()<.2)) bot.cover=chooseCoverNode(bot.pos,player.pos,coverNodes,{isHidden:(n,p)=>!lineOfSight(n.clone().setY(n.y+1.45),p.clone().setY(p.y+1.45)),isReachable:pathReachable,occupied:n=>coverOccupied(n,bot)});
+      if(visible&&(bot.hp<68||Math.random()<.2)) bot.cover=chooseCoverNode(bot.pos,player.pos,coverNodes,{isHidden:(n,p)=>!lineOfSight(n.clone().setY(n.y+.92),p.clone().setY(p.y+1.45)),isReachable:pathReachable,occupied:n=>coverOccupied(n,bot)});
       if(bot.cover&&bot.pos.distanceTo(bot.cover)<1.2&&bot.peekT<=0){bot.peekOut=!bot.peekOut;bot.peekT=bot.peekOut?.65:1.05+Math.random()*.7;}
       const goal=bot.cover||(visible?player.pos:(hasMemory?bot.lastSeen:bot.patrol));bot.route=pathReachable(bot.pos,goal)?null:chooseRouteNode(bot.pos,goal,navNodes,pathReachable);
       if(!hasMemory&&!visible&&bot.pos.distanceTo(bot.patrol)<2)bot.patrol=navNodes[Math.floor(Math.random()*navNodes.length)].clone();
@@ -181,7 +181,7 @@ function updateBots(dt){
     let goal=bot.route||bot.cover||(visible?player.pos:(hasMemory?bot.lastSeen:bot.patrol));
     if(atCover&&bot.peekOut){const toP=player.pos.clone().sub(bot.pos).normalize(),side=new THREE.Vector3(toP.z,0,-toP.x).multiplyScalar(bot.strafe*1.35);goal=bot.cover.clone().add(side);}
     let dir=goal.clone().sub(bot.pos);dir.y=0;if(dir.lengthSq()>.04){dir.normalize();let speed=bot.state==='pressure'?3.7:3.0;if(bot.state==='disengage')dir.multiplyScalar(-1);moveEntity(bot,dir.x*speed*dt,dir.z*speed*dt,.46,1.86,.52);}
-    bot.group.position.copy(bot.pos);bot.group.rotation.y=Math.atan2(player.pos.x-bot.pos.x,player.pos.z-bot.pos.z);bot.shootCd-=dt;
+    bot.group.position.set(bot.pos.x,bot.pos.y+(atCover&&!bot.peekOut?-.48:0),bot.pos.z);bot.group.rotation.y=Math.atan2(player.pos.x-bot.pos.x,player.pos.z-bot.pos.z);bot.shootCd-=dt;
     const canShoot=visible&&(!atCover||bot.peekOut);if(canShoot&&bot.shootCd<=0)botShoot(bot,dist);
   }
 }
