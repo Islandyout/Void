@@ -73,7 +73,7 @@ function buildWarehouse(cx,cz){
   addBox(cx-5,cz,9,.28,16,floor,2.55,{metalness:.12});
   addBox(cx-5,cz-7.6,9,.35,1.2,trim,2.83); addBox(cx-5,cz+7.6,9,.35,1.2,trim,2.83);
   for(let i=0;i<6;i++) addBox(cx+8.7,cz+6.4-i*1.15,2.4,.42*(i+1),1.1,0x7f6b54,0,{tag:'stairs'});
-  addBox(cx+4,cz+.65,9.5,.28,3.2,floor,2.55,{metalness:.12,tag:'mezzanine-bridge'});
+  addBox(cx+4,cz-1.2,9.5,.28,3.2,floor,2.55,{metalness:.12,tag:'mezzanine-bridge'});
   addBox(cx-5,cz-4,2.2,1.1,2.2,0x866f55); addBox(cx+3,cz+3,2.2,1.1,2.2,0x866f55); addBox(cx+6,cz-3,2.2,1.1,2.2,0x866f55);
   addBox(cx-7.5,cz-6,4,.22,4,0x59636f,4.6); addBox(cx+6,cz+5,7,.22,5,0x59636f,4.6);
   addNav(cx,cz-11); addNav(cx+10,cz); addNav(cx,cz+11); addNav(cx-8,cz+4); addNav(cx+6,cz-5);
