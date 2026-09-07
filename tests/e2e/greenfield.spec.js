@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE = 'http://127.0.0.1:4173/vx2.html';
+const BASE = 'http://127.0.0.1:4173/';
 const QA_BASE = `${BASE}?qa=1`;
 
 async function collectBrowserProblems(page) {
