@@ -21,3 +21,6 @@
   #touch #jumpBtn{right:calc(26px + var(--crouch));bottom:18px;width:var(--jump);height:var(--jump)}
   #touch #swapBtn{right:calc(26px + var(--crouch));bottom:calc(30px + var(--jump));width:var(--small);height:var(--small)}
 }
+@media(pointer:coarse) and (orientation:landscape){
+  #touch #swapBtn{right:calc(52px + var(--crouch) + var(--jump));bottom:calc(30px + var(--jump));}
+}
