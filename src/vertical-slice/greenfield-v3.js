@@ -131,7 +131,7 @@ function floorAt(x,z,currentY,maxRise=.6,radius=.18){ let floor=0; for(const c o
 function blockedAt(x,z,feetY,height,radius=.42){ if(Math.abs(x)>105||Math.abs(z)>105)return true; for(const c of colliders){ if(!overlapsXZ(c,x,z,radius))continue; if(c.maxY<=feetY+.06)continue; if(c.minY>=feetY+height-.05)continue; return true; } return false; }
 function canOccupyGround(x,z,r=.45){ const y=floorAt(x,z,.1,.55); return !blockedAt(x,z,y,1.86,r); }
 function moveEntity(entity,dx,dz,radius=.43,height=1.72,step=.55){
-  const tryAxis=(axis,delta)=>{ if(!delta)return; const nx=axis==='x'?entity.pos.x+delta:entity.pos.x, nz=axis==='z'?entity.pos.z+delta:entity.pos.z; const f=floorAt(nx,nz,entity.pos.y,step,Math.max(.18,radius-.04)); let feet=entity.pos.y; if(entity.grounded&&f-entity.pos.y<=step&&f-entity.pos.y>=-.42)feet=f; if(!blockedAt(nx,nz,feet,height,radius)){ entity.pos[axis]+=delta; if(entity.grounded&&Math.abs(f-entity.pos.y)<=step)entity.pos.y=f; } };
+  const tryAxis=(axis,delta)=>{ if(!delta)return; const nx=axis==='x'?entity.pos.x+delta:entity.pos.x, nz=axis==='z'?entity.pos.z+delta:entity.pos.z; const f=floorAt(nx,nz,entity.pos.y,step,radius+.03); let feet=entity.pos.y; if(entity.grounded&&f-entity.pos.y<=step&&f-entity.pos.y>=-.42)feet=f; if(!blockedAt(nx,nz,feet,height,radius)){ entity.pos[axis]+=delta; if(entity.grounded&&Math.abs(f-entity.pos.y)<=step)entity.pos.y=f; } };
   tryAxis('x',dx);tryAxis('z',dz);
 }
 function randomSpawn(away=player.pos,minDist=25){ const choices=spawns.map(([x,z])=>new THREE.Vector3(x,0,z)).filter(p=>p.distanceTo(away)>=minDist&&canOccupyGround(p.x,p.z,.6)); return (choices[Math.floor(Math.random()*choices.length)]||new THREE.Vector3(0,0,-75)).clone(); }
